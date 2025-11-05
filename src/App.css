@@ -37,38 +37,19 @@
   }
 }
 
-/* הוסף סגנון ל-App כדי להתאים את התצוגה למכשירים קטנים */
-.App {
-  text-align: center;
-  padding: 20px; /* תיזמן את המרווחים כדי להפוך את התוכן לנוח יותר גם על מכשירים קטנים */
-}
-
-/* הגדר גובה נמוך יותר לתמונה במכשירים קטנים */
-.App-logo {
-  height: 20vmin;
-  pointer-events: none;
-}
-
-/* הסתר את האנימציה במכשירים קטנים כדי לשמור על ביצועים */
+/* אם המכשיר בעובי של 600px או פחות, שנה גובה ל-App-header */
 @media (max-width: 600px) {
-  .App-logo {
-    animation: none;
+  .App-header {
+    min-height: 120vh;
   }
 }
 
-/* כמה שינויים ב-App-header כדי להתאים אותו למכשירים קטנים */
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(8px + 2vmin); /* קטן יותר עבור מכשירים קטנים */
-  color: white;
+/* סגנונות לקישור */
+.App-link {
+  color: #61dafb;
 }
 
-/* הסתר כמה יתרונות שאין צורך בהם במכשירים קטנים */
+/* אם המכשיר ברוחב של 600px או פחות, הסתר את הקישור */
 @media (max-width: 600px) {
   .App-link {
     display: none;

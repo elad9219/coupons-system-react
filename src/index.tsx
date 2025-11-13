@@ -6,19 +6,27 @@ import reportWebVitals from './reportWebVitals';
 import MainLayout from './Components/mainLayout/mainLayout';
 import { Provider } from 'react-redux';
 import { store } from './redux/store';
+import { BrowserRouter } from 'react-router-dom';
+import { loadToken } from './redux/authState';
+
+// Load token from localStorage
+const token = localStorage.getItem('token');
+if (token) {
+  store.dispatch(loadToken(token));
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <MainLayout />
+      <BrowserRouter>
+        <MainLayout />
+      </BrowserRouter>
     </Provider>
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

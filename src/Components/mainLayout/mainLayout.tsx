@@ -2,15 +2,21 @@ import "./mainLayout.css";
 import MyHeader from './myHeader/myHeader';
 import Menu from './menu/menu';
 import MyFooter from "./myFooter/myFooter";
-import { BrowserRouter } from "react-router-dom";
 import MainPage from './mainPage/mainPage';
 import MenuRouting from '../routing/MenuRouting/MenuRouting';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 function MainLayout(): JSX.Element {
+    const location = useLocation();
+
+    useEffect(() => {
+        localStorage.setItem('lastPath', location.pathname);
+    }, [location]);
+
     return (
         <div className="mainLayout" dir="rtl">
-            <BrowserRouter>
-			<header>
+            <header>
                 <MyHeader/>
             </header>
             <aside>
@@ -22,7 +28,6 @@ function MainLayout(): JSX.Element {
             <footer>
                 <MyFooter/>
             </footer>
-            </BrowserRouter>
         </div>
     );
 }

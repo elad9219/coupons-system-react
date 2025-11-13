@@ -1,154 +1,106 @@
 import "./login.css";
-import axios from 'axios';
-import { Button, ButtonGroup, Checkbox, FormControlLabel, SelectChangeEvent, TextField, Typography, Select, InputLabel, MenuItem, FormControl } from "@mui/material";
-import { Send, Cancel } from "@mui/icons-material";
-import UserCred from '../../../modal/userCred';
-import Message from "../../../modal/message";
+import { Button, ButtonGroup, TextField, Typography, Select, InputLabel, MenuItem, FormControl } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import notify from '../../../util/notify';
-import advNotify, { ErrMsg, SccMsg } from "../../../util/notify_advanced";
 import globals from "../../../util/global";
 import jwtAxios from '../../../util/JWTaxios';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { userLogin } from "../../../redux/authState";
 import { store } from "../../../redux/store";
-import { downloadCompanies, downloadSingleCompany } from "../../../redux/companyState";
+import { downloadCompanies } from "../../../redux/companyState";
+import { downloadCustomers } from "../../../redux/customerState";
+import { downloadSingleCompany } from "../../../redux/companyState";
+import { downloadSingleCustomer } from "../../../redux/customerState";
 import { Company } from "../../../modal/Company";
 import { Customer } from "../../../modal/Customer";
-import GetAllCustomers from '../../admin/getAllCustomers/getAllCustomers';
-import { downloadCustomers, downloadSingleCustomer } from "../../../redux/customerState";
-import SingleCompany from '../../company/singleCompany/singleCompany';
-import SingleCustomer from "../../customer/singleCustomer/singleCustomer";
 
-
+interface LoginForm {
+  email: string;
+  password: string;
+}
 
 function Login(): JSX.Element {
-    const {register, handleSubmit, formState:{errors}} = useForm<UserCred>();
-    const [userType, setUserType] = useState("");
-    //Use the hook useNavigate in react router V6
-    const navigate = useNavigate();
-    //Use the hook useHistory in react router V5,4
-    //const history = useHistory();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
+  const [userType, setUserType] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    const changeHandler = (event:SelectChangeEvent) => {
-      setUserType(event.target.value as string);
-    }     
+  const changeHandler = (event: any) => {
+    setUserType(event.target.value);
+  };
 
+  const send = (data: LoginForm) => {
+    const credentials = { ...data, userType };
+    jwtAxios.post(globals.urls.login, credentials)
+      .then(response => {
+        const token = response.headers.authorization;
+        localStorage.setItem('token', token);
+        dispatch(userLogin(token));
+        notify.success("!ברוך הבא");
 
-       //ES6
-        const send = (msg:UserCred)=> {
-        jwtAxios.post(globals.urls.login, msg)
-        .then(response => {
-          console.log(response);
-          notify.success("!ברוך הבא");
-          console.log(response.headers);
-          store.dispatch(userLogin(response.headers.authorization));
-          if (store.getState().authState.userType==="ADMIN") {
-            if (store.getState().companyState.company.length<1) {
-              jwtAxios.get<Company[]>(globals.admin.getAllCompanies)
-              .then(response=>{
-                store.dispatch(downloadCompanies(response.data));
-              });
-            }
-              if (store.getState().customerState.customer.length<1) {
-                jwtAxios.get<Customer[]>(globals.admin.getAllCustomers)
-                .then(response=>{
-                  store.dispatch(downloadCustomers(response.data));
-                })
-              .catch(err=>{
-                advNotify.error("system have an error")
-                console.log(err);
-              });
-            } 
+        // נווט מיידי לפי userType
+        const currentUserType = store.getState().authState.userType;
+
+        if (currentUserType === "ADMIN") {
+          jwtAxios.get<Company[]>(globals.admin.getAllCompanies)
+            .then(res => dispatch(downloadCompanies(res.data)))
+            .catch(() => {});
+          jwtAxios.get<Customer[]>(globals.admin.getAllCustomers)
+            .then(res => dispatch(downloadCustomers(res.data)))
+            .catch(() => {});
           navigate("/");
-          //history.push("/");
         }
-        if (store.getState().authState.userType==="COMPANY") {
-          jwtAxios.get<Company[]>(globals.company.getCompanyDetails)
-          .then((response)=> {
-            store.dispatch(downloadSingleCompany(response.data))
-            navigate("/company/allCoupons");
-          })
-          .catch(err=>{
-            advNotify.error("system have an error")
-            console.log(err);
-          });
+
+        if (currentUserType === "COMPANY") {
+          jwtAxios.get<Company>(globals.company.getCompanyDetails)
+            .then(res => dispatch(downloadSingleCompany([res.data])))
+            .catch(() => {});
+          navigate("/company/allCoupons");
         }
-        if (store.getState().authState.userType==="CUSTOMER") {
-          jwtAxios.get<Customer[]>(globals.customer.getCustomerDetails)
-          .then((response)=> {
-            store.dispatch(downloadSingleCustomer(response.data))
-            navigate("/");
-          })
-          .catch(err=>{
-            advNotify.error("system have an error")
-            console.log(err);
-          });
+
+        if (currentUserType === "CUSTOMER") {
+          jwtAxios.get<Customer>(globals.customer.getCustomerDetails)
+            .then(res => dispatch(downloadSingleCustomer([res.data])))
+            .catch(() => {});
+          navigate("/");
         }
+      })
+      .catch(err => {
+        notify.error("שגיאה בכניסה");
+        console.log(err);
       });
-    };
-    
-    
+  };
 
-    return (
-        <div className="login SolidBox" dir="rtl">
-			<Typography variant="h3" className="HeadLine" >כניסת משתמש</Typography><hr /><br />
-            <form onSubmit={handleSubmit(send)}>
-            <TextField type={"email"} name="email" label="מייל" variant="outlined" style={{background: "white"}} fullWidth {...register("email",{
-                required: {
-                value: true,
-                message: 'יש להקיש מייל תקני'
-              }
-            })}/>
-            <span>{errors.email?.message}</span>
-            <br />
-            <br /><br />
-            <TextField type={"password"} name="userPassword" label="סיסמה" dir="rtl" variant="outlined" style={{background: "white"}} fullWidth {...register("password",{
-                required: {
-                    value: true,
-                    message: 'לא הוקשה סיסמה'
-                  }
-            })}/>
-            {errors.password && <span>דרוש סיסמה</span>}
-            <br />
-            <br /><br />
-          <InputLabel id="uType" style={{marginLeft: "5px"}}>סוג משתמש</InputLabel>
-            <Select labelId="uType" label="סוג משתמש" value={userType} style={{background: "white"}} fullWidth {...register("userType",{
-              required: {
-                value: true,
-                message: 'לא הוקש סוג משתמש'
-            }
-            })}
-              onChange={changeHandler}
-            >
-            <MenuItem value="ADMIN" style={{fontFamily: "Palatino-Italic"}}>ADMIN</MenuItem>
-            <MenuItem value="COMPANY" style={{fontFamily: "Palatino-Italic"}}>COMPANY</MenuItem>
-            <MenuItem value="CUSTOMER" style={{fontFamily: "Palatino-Italic"}}>CUSTOMER</MenuItem>
-            </Select>
-            <br />
-          {errors.userType && <span>message error : {errors.userType.message}</span>}
-            <br /><br />
+  return (
+    <div className="login SolidBox" dir="rtl">
+      <Typography variant="h3" className="HeadLine">כניסת משתמש</Typography><hr /><br />
+      <form onSubmit={handleSubmit(send)}>
+        <TextField label="מייל" variant="outlined" fullWidth {...register("email", { required: "חובה להזין מייל" })} />
+        {errors.email && <span style={{ color: 'red' }}>{errors.email.message}</span>}
+        <br /><br />
 
+        <TextField label="סיסמה" type="password" variant="outlined" fullWidth {...register("password", { required: "חובה להזין סיסמה" })} />
+        {errors.password && <span style={{ color: 'red' }}>{errors.password.message}</span>}
+        <br /><br />
 
-          {/*<FormControlLabel name="showNotifications" label="זכור אותי" control={<Checkbox/>} {...register("remmemberMe")}/>*/}
+        <FormControl fullWidth>
+          <InputLabel>סוג משתמש</InputLabel>
+          <Select value={userType} onChange={changeHandler} label="סוג משתמש">
+            <MenuItem value="ADMIN">ADMIN</MenuItem>
+            <MenuItem value="COMPANY">COMPANY</MenuItem>
+            <MenuItem value="CUSTOMER">CUSTOMER</MenuItem>
+          </Select>
+        </FormControl>
+        <br /><br />
 
-            <br />
-            <ButtonGroup variant="contained" fullWidth>
-                <Button type="submit" color="primary">כניסה למערכת</Button>
-                {/*<Button type="reset" color="secondary" startIcon={<Cancel/>}>Reset</Button>*/}
-            </ButtonGroup>
-            <br />
-            {/*jwt*/}
-            </form>
-        </div>
-    );
+        <ButtonGroup variant="contained" fullWidth>
+          <Button type="submit" color="primary">כניסה למערכת</Button>
+        </ButtonGroup>
+      </form>
+    </div>
+  );
 }
 
 export default Login;
-
-
-
-
-

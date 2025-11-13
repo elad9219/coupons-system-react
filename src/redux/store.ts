@@ -1,20 +1,17 @@
-import { combineReducers, createStore } from "redux";
-import { authReducer } from './authState';
 import { configureStore } from '@reduxjs/toolkit';
+import { authReducer } from './authState';
 import { companyReducer } from "./companyState";
-import { customerReducer, customerState } from './customerState';
-import { couponReducer, couponState } from './couponState';
+import { customerReducer } from './customerState';
+import { couponReducer } from './couponState';
 
-//single reducer
-// export const store = createStore(authReducer);
+const reducers = {
+    authState: authReducer,
+    companyState: companyReducer,
+    customerState: customerReducer,
+    couponState: couponReducer
+};
 
+export const store = configureStore({ reducer: reducers });
 
-//multiple reducers - use before react 18
-//const reducers = combineReducers({authState: authReducer});
-//const store = createStore(reducers);
-
-const reducers = combineReducers({authState: authReducer, companyState: companyReducer, customerState: customerReducer, couponState: couponReducer});
-export const store = configureStore({reducer: reducers}); 
-
-
-
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

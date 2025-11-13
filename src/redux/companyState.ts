@@ -1,117 +1,69 @@
 import { Company } from "../modal/Company";
 
-
-
-export class companyState {
-    company : Company[] = [];
-    singleCompany: Company | null;
-    singleCompanyId: number | null;
+export interface CompanyState {
+    company: Company[];
 }
 
+export const initialState: CompanyState = {
+    company: []
+};
 
-export enum companyActionType {
-    DownloadCompanies = "DownloadCompanies",
-    DeleteCompany = "DeleteCompany",
-    UpdateComapny = "UpdateComapny",
-    AddCompany = "AddCompany",
-    DownloadSingleCompany = "DownloadSingleCompany",
-    GetSingleCompany = "GetSingleCompany",
+export enum CompanyActionTypes {
+    DOWNLOAD_COMPANIES = "DOWNLOAD_COMPANIES",
+    DOWNLOAD_SINGLE_COMPANY = "DOWNLOAD_SINGLE_COMPANY",
+    ADD_COMPANY = "ADD_COMPANY",
+    UPDATE_COMPANY = "UPDATE_COMPANY",
+    DELETE_COMPANY = "DELETE_COMPANY"
 }
 
-export interface CompanyAction {
-    type : companyActionType,
-    payload? : any;
+interface CompanyAction {
+    type: CompanyActionTypes;
+    payload?: any;
 }
 
-export function downloadCompanies(company: Company[]):CompanyAction {
-    return {type: companyActionType.DownloadCompanies, payload: company};
+export function downloadCompanies(companies: Company[]): CompanyAction {
+    return { type: CompanyActionTypes.DOWNLOAD_COMPANIES, payload: companies };
 }
 
-export function deleteCompany(companyId: number):CompanyAction {    
-    return {type : companyActionType.DeleteCompany,payload: companyId};
+export function downloadSingleCompany(company: Company[]): CompanyAction {
+    return { type: CompanyActionTypes.DOWNLOAD_SINGLE_COMPANY, payload: company };
 }
 
-export function updateCompany(company:Company):CompanyAction {
-    return {type: companyActionType.UpdateComapny,payload: company};
+export function addCompany(company: Company): CompanyAction {
+    return { type: CompanyActionTypes.ADD_COMPANY, payload: company };
 }
 
-export function addCompany(company:Company):CompanyAction {
-    return {type: companyActionType.AddCompany,payload: company};
+export function updateCompany(company: Company): CompanyAction {
+    return { type: CompanyActionTypes.UPDATE_COMPANY, payload: company };
 }
 
-export function downloadSingleCompany(company:Company[]):CompanyAction {    
-    return {type : companyActionType.DownloadSingleCompany,payload: company};
+export function deleteCompany(companyId: number): CompanyAction {
+    return { type: CompanyActionTypes.DELETE_COMPANY, payload: companyId };
 }
 
-
-export function getSingleCompany(company: Company): CompanyAction {
-    return {type: companyActionType.GetSingleCompany, payload: company};
+export function getSingleCompany(companyId: number): CompanyAction {
+    return { type: CompanyActionTypes.DOWNLOAD_SINGLE_COMPANY, payload: [companyId] }; // או רק id – תלוי ב-reducer
 }
 
-
-export function companyReducer(currentState:companyState = new companyState, action: CompanyAction): companyState {
-    var newState = {...currentState};
-
+export function companyReducer(state = initialState, action: CompanyAction): CompanyState {
     switch (action.type) {
-        case companyActionType.DownloadCompanies: 
-            newState.company = action.payload;
-            console.log(action.payload);    
-        break;
-
-        case companyActionType.AddCompany: 
-        /*
-            //update backend
-            console.log("redux payload:", action.payload);
-            newState.company.push(action.payload);
-            */
-
+        case CompanyActionTypes.DOWNLOAD_COMPANIES:
+            return { ...state, company: action.payload || [] };
+        case CompanyActionTypes.DOWNLOAD_SINGLE_COMPANY:
+            return { ...state, company: action.payload || [] };
+        case CompanyActionTypes.ADD_COMPANY:
+            return { ...state, company: [...state.company, action.payload] };
+        case CompanyActionTypes.UPDATE_COMPANY:
             return {
-                ...currentState,
-                company: [...currentState.company, action.payload]
+                ...state,
+                company: state.company.map(c => c.id === action.payload.id ? action.payload : c)
             };
-        break;
-        
-
-        case companyActionType.DeleteCompany:
-            newState.company = newState.company.filter(item=>item.id!=action.payload);
-        break;
-
-        case companyActionType.UpdateComapny:
-            /*
-            var updatedCompanies = {...newState.company}.filter(item=>item.id!=action.payload.id);
-            updatedCompanies.push(action.payload);
-            newState.company = updatedCompanies;
-            */
-
+        case CompanyActionTypes.DELETE_COMPANY:
             return {
-                ...currentState,
-                company: currentState.company.map((c) => c.id === action.payload.id ? action.payload : c)
+                ...state,
+                company: state.company.filter(c => c.id !== action.payload)
             };
-        break;
-
-        case companyActionType.DownloadSingleCompany:
-           // newState.company.push(action.payload);
-            const { payload } = action;
-            const existingCompanyIndex = newState.company.findIndex(c => c.id === payload.id);
-            if (existingCompanyIndex >= 0) {
-                // If the company already exists in the state, update it
-                newState.company = [
-                ...newState.company.slice(0, existingCompanyIndex),
-                payload,
-                ...newState.company.slice(existingCompanyIndex + 1),
-                ];
-            } else {
-                // If the company doesn't exist in the state, add it
-                newState.company = [...newState.company, payload];
-            }
-        break;
-
-        case companyActionType.GetSingleCompany:
-            const companyId = action.payload;
-            const singleCompany = newState.company.find((c) => c.id === companyId);
-            newState.company = singleCompany ? [singleCompany] : [];
-        break;
+        default:
+            return state;
     }
-            
-    return newState;
 }

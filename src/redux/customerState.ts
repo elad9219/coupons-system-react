@@ -1,106 +1,71 @@
 import { Customer } from "../modal/Customer";
 
-export class customerState {
-    customer : Customer[] = [];
-    singleCustomer: Customer | null;
-    singleCustomerId: number | null;
+export interface CustomerState {
+    customer: Customer[];
 }
 
-export enum customerActionType {
-    GetAllCustomers = "GetAllCustomers",
-    DeleteCustomer = "DeleteCustomer",
-    UpdateCustomer = "UpdateCustomer",
-    AddCustomer = "AddCustomer",
-    DownloadSingleCustomer = "DownloadSingleCustomer",
-    GetSingleCustomer = "GetSingleCustomer",
+export const initialState: CustomerState = {
+    customer: []
+};
+
+export enum CustomerActionTypes {
+    DOWNLOAD_CUSTOMERS = "DOWNLOAD_CUSTOMERS",
+    DOWNLOAD_SINGLE_CUSTOMER = "DOWNLOAD_SINGLE_CUSTOMER",
+    ADD_CUSTOMER = "ADD_CUSTOMER",
+    UPDATE_CUSTOMER = "UPDATE_CUSTOMER",
+    DELETE_CUSTOMER = "DELETE_CUSTOMER"
 }
 
-export interface CustomerAction {
-    type : customerActionType,
-    payload? : any;
+interface CustomerAction {
+    type: CustomerActionTypes;
+    payload?: any;
 }
 
-export function downloadCustomers(customer: Customer[]):CustomerAction {
-    return {type: customerActionType.GetAllCustomers, payload: customer};
+// קיימים
+export function downloadCustomers(customers: Customer[]): CustomerAction {
+    return { type: CustomerActionTypes.DOWNLOAD_CUSTOMERS, payload: customers };
 }
 
-export function deleteCustomer(customerId: number):CustomerAction {    
-    return {type : customerActionType.DeleteCustomer,payload: customerId};
+export function downloadSingleCustomer(customer: Customer[]): CustomerAction {
+    return { type: CustomerActionTypes.DOWNLOAD_SINGLE_CUSTOMER, payload: customer };
 }
 
-export function updateCustomer(customer: Customer):CustomerAction {
-    return {type: customerActionType.UpdateCustomer,payload: customer};
+// חדשים – חסרים
+export function addCustomer(customer: Customer): CustomerAction {
+    return { type: CustomerActionTypes.ADD_CUSTOMER, payload: customer };
 }
 
-export function addCustomer(customer: Customer):CustomerAction {
-    return {type: customerActionType.AddCustomer,payload: customer};
+export function updateCustomer(customer: Customer): CustomerAction {
+    return { type: CustomerActionTypes.UPDATE_CUSTOMER, payload: customer };
 }
 
-export function downloadSingleCustomer(customer:Customer[]):CustomerAction {    
-    return {type : customerActionType.DownloadSingleCustomer,payload: customer};
+export function deleteCustomer(customerId: number): CustomerAction {
+    return { type: CustomerActionTypes.DELETE_CUSTOMER, payload: customerId };
 }
 
-export function getSingleCustomer(customer: Customer): CustomerAction {
-    return {type: customerActionType.GetSingleCustomer, payload: customer};
+export function getSingleCustomer(customerId: number): CustomerAction {
+    return { type: CustomerActionTypes.DOWNLOAD_SINGLE_CUSTOMER, payload: [customerId] };
 }
 
-export function customerReducer(currentState: customerState = new customerState, action: CustomerAction): customerState {
-    var newState = {...currentState};
-
+export function customerReducer(state = initialState, action: CustomerAction): CustomerState {
     switch (action.type) {
-        case customerActionType.GetAllCustomers: 
-            newState.customer = action.payload;
-            console.log(action.payload);    
-        break;
-
-        case customerActionType.AddCustomer: 
-        /*
-            //update backend
-            console.log("redux payload");
-            console.log(action.payload);
-            newState.customer.push(action.payload);
-            */
-
+        case CustomerActionTypes.DOWNLOAD_CUSTOMERS:
+            return { ...state, customer: action.payload || [] };
+        case CustomerActionTypes.DOWNLOAD_SINGLE_CUSTOMER:
+            return { ...state, customer: action.payload || [] };
+        case CustomerActionTypes.ADD_CUSTOMER:
+            return { ...state, customer: [...state.customer, action.payload] };
+        case CustomerActionTypes.UPDATE_CUSTOMER:
             return {
-                ...currentState,
-                customer: [...currentState.customer, action.payload]
+                ...state,
+                customer: state.customer.map(c => c.id === action.payload.id ? action.payload : c)
             };
-        break;
-
-        case customerActionType.DeleteCustomer:
-            newState.customer = newState.customer.filter(item=>item.id!=action.payload);
-        break;
-
-        case customerActionType.UpdateCustomer:
+        case CustomerActionTypes.DELETE_CUSTOMER:
             return {
-                ...currentState,
-                customer: currentState.customer.map((c) => c.id === action.payload.id ? action.payload : c)
+                ...state,
+                customer: state.customer.filter(c => c.id !== action.payload)
             };
-        break;
-
-        case customerActionType.DownloadSingleCustomer:
-            //newState.customer.push(action.payload);
-            const { payload } = action;
-            const existingCompanyIndex = newState.customer.findIndex(c => c.id === payload.id);
-
-            if (existingCompanyIndex >= 0) {
-                // If the customer already exists in the state, update it
-                newState.customer = [
-                ...newState.customer.slice(0, existingCompanyIndex),
-                payload,
-                ...newState.customer.slice(existingCompanyIndex + 1),
-                ];
-            } else {
-                // If the customer doesn't exist in the state, add it
-                newState.customer = [...newState.customer, payload];
-            }
-        break;
-
-        case customerActionType.GetSingleCustomer:
-            const customerId = action.payload;
-            const singleCustomer = newState.customer.find((c) => c.id === customerId);
-            newState.customer = singleCustomer ? [singleCustomer] : [];
-        break;
+        default:
+            return state;
     }
-    return newState;
 }

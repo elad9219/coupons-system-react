@@ -57,7 +57,7 @@ function GetCustomer(props: SingleCustomerProps): JSX.Element {
             value={customerId}
             onChange={(event) => setCustomerId(event.target.value as unknown as number)}/>
             <br /><br />
-            <Button variant="contained" fullWidth color="primary" onClick={findCustomer}>מצא חברה</Button>
+            <Button variant="contained" fullWidth color="primary" onClick={findCustomer}>מצא לקוח</Button>
             <br /><br />
             {getCustomer ? (
                 <SingleCustomer customer={customer} updateCustomer={updateCustomer} />

@@ -10,12 +10,10 @@ import SingleCoupon from '../singleCoupon/singleCoupon';
 import notify from "../../../util/notify";
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
-import { ThemeProvider, createMuiTheme, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material";
 import { CouponCategory } from "../../../modal/CouponCategory";
-import getCouponsByCategory from "../getCouponsByCategory/getCouponsByCategory";
 import { Company } from "../../../modal/Company";
-
 
 function GetAllCompanyCoupons2(): JSX.Element {
     const navigate = useNavigate();
@@ -24,9 +22,6 @@ function GetAllCompanyCoupons2(): JSX.Element {
     const [category, setCategory] = useState<CouponCategory>(CouponCategory.ALL);
     const location = useLocation();
     const [company,setCompany] = useState<Company | null>(null);
-    
-
-    
 
     useEffect(() => {
         if (store.getState().authState.userType == "COMPANY") {
@@ -38,10 +33,8 @@ function GetAllCompanyCoupons2(): JSX.Element {
             if (company) {
                 setCoupons(company.coupons);
             };
-        };
-        
+        }
     }, [maxPrice, category]);
-
 
     async function getCouponsByCategoryAndPrice(category: CouponCategory, maxPrice: number): Promise<Coupon[]> {
         let response;
@@ -54,13 +47,13 @@ function GetAllCompanyCoupons2(): JSX.Element {
         return filteredCoupons;
     }
 
-
     const getCoupons = async () => {
         try {
             const couponsByCategoryAndPrice = await getCouponsByCategoryAndPrice(category, maxPrice);
             setCoupons(couponsByCategoryAndPrice);
         } catch (error) {
             setCoupons([]);
+            console.log(error);
         }
     };
 
@@ -73,7 +66,6 @@ function GetAllCompanyCoupons2(): JSX.Element {
         setCategory(value);
     };
 
-
     const marks = [
         { value: 100, label: "100₪" },
         { value: 2500, label: "2,500₪" },
@@ -82,61 +74,50 @@ function GetAllCompanyCoupons2(): JSX.Element {
         { value: 10000, label: "10,000₪" },
     ];
 
-    function SliderSizes() {
-        const setValue = (newValue: number) => {
-        setMaxPrice(newValue);
-        }
-            return setValue;
-    };
-
-
-
     return (
         <div className="getAllCompanyCoupons2">
-			<div className="solid">
-			<h1>הקופונים של החברה</h1> <hr />
-            <>
-            <Box sx={{ width: 450, margin: "0 auto" }}>
-            <p style={{fontSize:"13px"}}>מחיר מקסימלי</p>
-        <Slider
-            size="medium"
-            aria-label="Small"
-            valueLabelDisplay="auto"
-            min={100}
-            max={10000}
-            step={100}
-            marks={marks}
-            value={maxPrice}
-            onChange={(_, newValue) => SliderSizes()(newValue as number)}
-            sx={{
-                width: "100%",
-            }}
-            />
-        </Box>
-        ₪ <input type="number" placeholder="Max price" value={maxPrice} style={{width:75}} onChange={(e) => setMaxPrice(Number(e.target.value))}/>
-        <FormControl sx={{display: "flex",justifyContent: "center", maxWidth: "250px"}} id="category-wrapper">
-        <InputLabel id="category" sx={{position: "absolute",top: "0px",left: "25px",padding: "0 4px"
-        ,fontSize: "13px",fontWeight: "bold",}}>קטגוריה</InputLabel>
-        <Select labelId="category" label="קטגוריה" value={category} sx={{mx: "auto", width: "200px"}} onChange={handleSelectChange}
-            id="category-select"
-            >
-            <MenuItem value={CouponCategory.ALL} dir="rtl">כל הקטגוריות</MenuItem>
-            <MenuItem value={CouponCategory.FOOD} dir="rtl">אוכל</MenuItem>
-            <MenuItem value={CouponCategory.VACATION} dir="rtl">חופשה</MenuItem>
-            <MenuItem value={CouponCategory.HOTELS} dir="rtl">מלונות</MenuItem>
-            <MenuItem value={CouponCategory.ELECTRICITY} dir="rtl">מוצרי חשמל</MenuItem>
-            <MenuItem value={CouponCategory.RESTAURANT} dir="rtl">מסעדות</MenuItem>
-            <MenuItem value={CouponCategory.SPA} dir="rtl">ספא</MenuItem>
-            <MenuItem value={CouponCategory.ATTRACTIONS} dir="rtl">אטרקציות</MenuItem>
-            <MenuItem value={CouponCategory.CLOTHING} dir="rtl">ביגוד</MenuItem>
-            <MenuItem value={CouponCategory.BOWLING} dir="rtl">באולינג</MenuItem>
-            <MenuItem value={CouponCategory.OTHER}dir="rtl">אחר</MenuItem>
-            </Select>
-            </FormControl>
-            </>
-            {coupons.map(item=><SingleCoupon key={item.id} coupon={item} updateCoupon={function (): void {
-                throw new Error("Function not implemented.");
-            } } couponPurchased={false}/>)}
+            <div className="solid">
+                <h1>הקופונים של החברה</h1> <hr />
+                <Box sx={{ width: 450, margin: "0 auto" }}>
+                    <p style={{fontSize:"13px"}}>מחיר מקסימלי</p>
+                <Slider
+                    size="medium"
+                    aria-label="Small"
+                    valueLabelDisplay="auto"
+                    min={100}
+                    max={10000}
+                    step={100}
+                    marks={marks}
+                    value={maxPrice}
+                    onChange={handleSliderChange}
+                    sx={{
+                        width: "100%",
+                    }}
+                    />
+                </Box>
+                ₪ <input type="number" placeholder="Max price" value={maxPrice} style={{width:75}} onChange={(e) => setMaxPrice(Number(e.target.value))}/>
+                <FormControl sx={{display: "flex",justifyContent: "center", maxWidth: "250px"}} id="category-wrapper">
+                <InputLabel id="category" sx={{position: "absolute",top: "0px",left: "25px",padding: "0 4px"
+                ,fontSize: "13px",fontWeight: "bold",}}>קטגוריה</InputLabel>
+                <Select labelId="category" label="קטגוריה" value={category} sx={{mx: "auto", width: "200px"}} onChange={handleSelectChange}
+                    id="category-select"
+                    >
+                    <MenuItem value={CouponCategory.ALL} dir="rtl">כל הקטגוריות</MenuItem>
+                    <MenuItem value={CouponCategory.FOOD} dir="rtl">אוכל</MenuItem>
+                    <MenuItem value={CouponCategory.VACATION} dir="rtl">חופשה</MenuItem>
+                    <MenuItem value={CouponCategory.HOTELS} dir="rtl">מלונות</MenuItem>
+                    <MenuItem value={CouponCategory.ELECTRICITY} dir="rtl">מוצרי חשמל</MenuItem>
+                    <MenuItem value={CouponCategory.RESTAURANT} dir="rtl">מסעדות</MenuItem>
+                    <MenuItem value={CouponCategory.SPA} dir="rtl">ספא</MenuItem>
+                    <MenuItem value={CouponCategory.ATTRACTIONS} dir="rtl">אטרקציות</MenuItem>
+                    <MenuItem value={CouponCategory.CLOTHING} dir="rtl">ביגוד</MenuItem>
+                    <MenuItem value={CouponCategory.BOWLING} dir="rtl">באולינג</MenuItem>
+                    <MenuItem value={CouponCategory.OTHER}dir="rtl">אחר</MenuItem>
+                    </Select>
+                    </FormControl>
+                    {coupons.map(item=><SingleCoupon key={item.id} coupon={item} updateCoupon={function (): void {
+                        throw new Error("Function not implemented.");
+                    } } couponPurchased={false}/>)}
             </div>
         </div>
     );

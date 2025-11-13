@@ -7,34 +7,49 @@ import advNotify from "../../../util/notify_advanced";
 import SingleCompany from "../singleCompany/singleCompany";
 import "./getCompanyDetails.css";
 import globals from '../../../util/global';
-import { companyState, downloadCompanies } from "../../../redux/companyState";
-
+import { downloadSingleCompany } from "../../../redux/companyState";
 
 function GetCompanyDetails(): JSX.Element {
     const navigate = useNavigate();
-    const [company, setCompany] = useState(new Company());
-
+    const [company, setCompany] = useState<Company | null>(null);
+    const [loading, setLoading] = useState(true);  // English: Added loading
 
     useEffect(() => {
         if (store.getState().authState.userType!="COMPANY") {
             advNotify.error("Please login...");
             navigate("/login");
+            return;
         }
-        setCompany(store.getState().companyState.company[0])
-    },[]);
-    
 
-    
+        setLoading(true);
+
+        jwtAxios.get<Company>(globals.company.getCompanyDetails)
+            .then((response) => {
+                setCompany(response.data);
+                store.dispatch(downloadSingleCompany([response.data]));
+                setLoading(false);
+            })
+            .catch(err => {
+                advNotify.error("Failed to load company details");
+                console.log(err);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) {
+        return <div>Loading...</div>;  // English: Loading screen
+    }
+
+    if (!company) {
+        return <div>No company found</div>;
+    }
+
     return (
         <div className="getCompanyDetails">
 			<h1> פרטי חברה </h1> <hr />
-            <SingleCompany key={company.id} company={company} updateCompany={function (): void {
-                throw new Error("Function not implemented.");
-            } } />
+            <SingleCompany company={company} updateCompany={() => {}} />
         </div>
     );
 }
 
-
 export default GetCompanyDetails;
-

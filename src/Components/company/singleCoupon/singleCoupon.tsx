@@ -12,36 +12,20 @@ import advNotify from "../../../util/notify_advanced";
 import { updateCoupon } from "../../../redux/couponState";
 import { updateCustomer } from "../../../redux/customerState";
 
-
-
 interface SingleCouponProps {
     coupon? : Coupon;
     updateCoupon: () => void;
+    couponPurchased: boolean;
 }
 
-function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): JSX.Element {
+function SingleCoupon(props: SingleCouponProps): JSX.Element {
     const navigate = useNavigate();
     const [deleted, setDeleted] = useState(false);
     const [open, setOpen] = useState(false);  
     const [coupon, setCoupon] = useState<Coupon | undefined>(props.coupon);
     const [userType, setUserType] = useState("");
     const [coupons, setCoupons] = useState<Coupon[]>([]);
-    const [purchased, setPurchased] = useState(false); 
-
-
-    // useEffect(() => {
-    //     const customerCoupons = store.getState().customerState.customer[0]?.coupons;
-    //     const isPurchased =
-    //     customerCoupons &&
-    //     customerCoupons.some((coupon) => coupon.id === props.coupon.id);
-    //     setPurchased(isPurchased);
-    // }, [props.coupon.id, store.getState().customerState.customer]);
-
-
-    
-
-
-    
+    const [purchased, setPurchased] = useState(props.couponPurchased);
 
     const purchaseCoupon = ()=> {
         if (store.getState().authState.userType!="CUSTOMER") {
@@ -75,14 +59,8 @@ function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): 
         }
     };
 
-
-
     const couponPurchased = store.getState().customerState.customer[0]?.coupons?.filter((
         item)=>item.id==props.coupon.id).length > 0;
-
-
-
-
 
     const removeCoupon = (): Promise<void> => {
         return jwtAxios.delete(globals.company.deleteCoupon+props.coupon.id)
@@ -100,11 +78,11 @@ function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): 
                 throw error;
             });
     };
-    
+
     const handleDeleteYes = () => {
         setOpen(true);
     };
-        
+   
         const handleDeleteConfirm = () => {
             removeCoupon()
             .then(() => {
@@ -115,29 +93,28 @@ function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): 
                 setOpen(false);
             });
         };
-    
+   
         const handleDeleteNo = () => {
             setOpen(false);
         };
 
-        
-    
+   
+   
         const updateCoupon = () => {
             navigate("/company/updateCoupon", { state: { couponId: props.coupon.id } });
         };
-    
-    
+   
+   
         if (deleted) {
             navigate(+1); 
             return null;
         }
 
-
+   
         if (!props.coupon) {
             return <div>Loading...</div>;
         }
-        
-
+   
     return (
         <div className="singleCoupon SolidBox" dir="rtl">
             <h3 style={{textAlign:"center"}} dir="rtl"> {props.coupon.title}</h3> <hr/><br />
@@ -165,7 +142,7 @@ function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): 
                         aria-describedby="alert-dialog-description"
                     >
                         <DialogTitle id="alert-dialog-title">
-                        {"?"+props.coupon.title+ " האם אתה בטוח שברצונך למחוק את קופון"}
+                            {"?"+props.coupon.title+ " האם אתה בטוח שברצונך למחוק את קופון"}
                         </DialogTitle>
                         <DialogContent>
                         <DialogContentText id="alert-dialog-description">
@@ -183,8 +160,7 @@ function SingleCoupon(props: SingleCouponProps & { couponPurchased: boolean }): 
                     </div>
             </ButtonGroup>
             :""}
-            
-
+   
             {store.getState().authState.userType === "" || store.getState().authState.userType === "CUSTOMER"  ?
                 <ButtonGroup variant="contained" fullWidth>
                     <Button color="primary" onClick={purchaseCoupon}

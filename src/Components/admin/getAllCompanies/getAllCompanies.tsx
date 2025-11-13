@@ -1,50 +1,38 @@
-import "./getAllCompanies.css";
-import { useState, useEffect } from 'react';
-import SingleCompany from '../../company/singleCompany/singleCompany';
-import advNotify from '../../../util/notify_advanced';
-import { useNavigate } from 'react-router-dom';
-import { Company } from '../../../modal/Company';
+import { useEffect } from "react";
 import { store } from "../../../redux/store";
 import { useSelector } from "react-redux";
-import { addCompany, companyState, downloadCompanies } from '../../../redux/companyState';
+import { addCompany, downloadCompanies } from '../../../redux/companyState';
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
+import { Company } from "../../../modal/Company";
+import SingleCompany from "../../company/singleCompany/singleCompany";
 
 function GetAllCompanies(): JSX.Element {
-    const navigate = useNavigate();
-    const [companies, setCompanies] = useState<Company[]>([]);
-    
-    
+    const companies = useSelector((state: any) => state.companyState.company);
 
     useEffect(() => {
-        if (store.getState().authState.userType !== "ADMIN") {
-            advNotify.error("Please login...");
-            navigate("/login");
+        if (companies.length === 0) {
+            jwtAxios.get<Company[]>(globals.admin.getAllCompanies)
+                .then(response => {
+                    store.dispatch(downloadCompanies(response.data));
+                })
+                .catch(err => {
+                    notify.error("שגיאה בטעינת חברות");
+                });
         }
-        async function fetchData() {
-            try {
-                const response = await jwtAxios.get<Company[]>(globals.admin.getAllCompanies);
-                setCompanies(response.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-        fetchData();
-    }, []);
-    
-    
+    }, [companies]);
+
     return (
-        <div className="getAllCompanies">
-			<h1>קבלת חברות</h1> <hr />
-            {/* insert search box */}
-            {/*<SingleCompany id={0} name={"Osem"} email={"osem@osem.com"}/> */}
-            {/* {companies.map(item=><SingleCompany key={item.id} company={item}/>)} */}
+        <div dir="rtl">
+            <h2>כל החברות</h2>
             {companies.map((company: Company) => (
-                    <SingleCompany key={company.id} company={company} updateCompany={function (): void {
-                    throw new Error("Function not implemented.");
-                } } />
-                ))}
+                <SingleCompany 
+                    key={company.id} 
+                    company={company} 
+                    updateCompany={() => {}} 
+                />
+            ))}
         </div>
     );
 }

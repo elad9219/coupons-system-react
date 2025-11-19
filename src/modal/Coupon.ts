@@ -9,4 +9,7 @@ export class Coupon {
     amount: number;
     price: number;
     image?: string;
+
+    // Added in backend + frontend to support "expired" flag without deleting coupons
+    expired?: boolean;
 }

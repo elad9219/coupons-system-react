@@ -3,17 +3,15 @@ import { Coupon } from '../../../modal/Coupon';
 import { useNavigate } from "react-router-dom";
 import { Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { store } from "../../../redux/store";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import jwtAxios from "../../../util/JWTaxios";
 import notify from "../../../util/notify";
 import globals from "../../../util/global";
-import { addCoupon, deleteCoupon } from "../../../redux/couponState";
+import { deleteCoupon } from "../../../redux/couponState";
 import advNotify from "../../../util/notify_advanced";
-import { updateCoupon } from "../../../redux/couponState";
-import { updateCustomer } from "../../../redux/customerState";
 
 interface SingleCouponProps {
-    coupon? : Coupon;
+    coupon?: Coupon;
     updateCoupon: () => void;
     couponPurchased: boolean;
 }
@@ -21,159 +19,119 @@ interface SingleCouponProps {
 function SingleCoupon(props: SingleCouponProps): JSX.Element {
     const navigate = useNavigate();
     const [deleted, setDeleted] = useState(false);
-    const [open, setOpen] = useState(false);  
-    const [coupon, setCoupon] = useState<Coupon | undefined>(props.coupon);
-    const [userType, setUserType] = useState("");
-    const [coupons, setCoupons] = useState<Coupon[]>([]);
+    const [open, setOpen] = useState(false);
+    const coupon = props.coupon;
     const [purchased, setPurchased] = useState(props.couponPurchased);
 
-    const purchaseCoupon = ()=> {
-        if (store.getState().authState.userType!="CUSTOMER") {
-            advNotify.error("עליך להתחבר למערכת לפני רכישת קופון");
+    if (!coupon) return <div>Loading...</div>;
+
+    const isExpired = coupon.expired === true;
+
+    const purchaseCoupon = () => {
+        if (store.getState().authState.userType !== "CUSTOMER") {
+            advNotify.error("עליך להתחבר כלקוח כדי לרכוש קופון");
             navigate("/login");
-        } else {
-        let couponId = props.coupon.id;
-        console.log(store.getState().customerState.customer[0]?.coupons?.filter((
-            item)=>item.id==props.coupon.id).length);
-            console.log(store.getState().customerState.customer[0]?.coupons?.some((
-                coupon) => coupon.id === props.coupon.id));
-        jwtAxios.post(globals.customer.purchaseCoupon + couponId)
+            return;
+        }
+
+        jwtAxios.post(globals.customer.purchaseCoupon + coupon.id)
             .then(response => {
                 if (response.status < 300) {
-                notify.success("נרכש בהצלחה " + coupon.title + " קופון");
-                setPurchased(true);
-                let updatedCoupon = {...coupon, purchased: true};
-                setCoupon(updatedCoupon);
-                store.dispatch(updateCustomer(store.getState().customerState.customer[0]));
-                navigate(+1);
-                } else {
-                notify.error("בעיה ברכישת קופון");
+                    notify.success("קופון " + coupon.title + " נרכש בהצלחה!");
+                    setPurchased(true);
+                    navigate(0); // refresh
                 }
             })
             .catch(err => {
-                if (err.response && err.response.status === 400) {
-                    notify.error("אפשר לרכוש כל קופון רק פעם אחת.");
-                }
-                throw err;
-            })
-        }
+                notify.error("שגיאה – הקופון כבר נרכש או פג תוקף");
+            });
     };
 
-    const couponPurchased = store.getState().customerState.customer[0]?.coupons?.filter((
-        item)=>item.id==props.coupon.id).length > 0;
+    const couponPurchased = store.getState().customerState.customer[0]?.coupons?.some(c => c.id === coupon.id) || purchased;
 
-    const removeCoupon = (): Promise<void> => {
-        return jwtAxios.delete(globals.company.deleteCoupon+props.coupon.id)
-            .then(response=>{
-                if (response.status<300) {
-                    notify.success("נמחק " + props.coupon.title + " קופון");
-                    store.dispatch(deleteCoupon(props.coupon.id));
+    const removeCoupon = () => {
+        jwtAxios.delete(globals.company.deleteCoupon + coupon.id)
+            .then(response => {
+                if (response.status < 300) {
+                    notify.success("קופון נמחק");
+                    store.dispatch(deleteCoupon(coupon.id));
                     setDeleted(true);
                 }
-            })
-            .catch((error) => {
-                if (error.response && error.response.status === 500) {
-                    notify.error("בעיה במחיקת קופון. נסה שוב מאוחר יותר.");
-                }
-                throw error;
             });
     };
 
-    const handleDeleteYes = () => {
-        setOpen(true);
+    const handleDeleteConfirm = () => {
+        removeCoupon();
+        setOpen(false);
     };
-   
-        const handleDeleteConfirm = () => {
-            removeCoupon()
-            .then(() => {
-                setDeleted(true);
-                setOpen(false);
-            })
-            .catch(() => {
-                setOpen(false);
-            });
-        };
-   
-        const handleDeleteNo = () => {
-            setOpen(false);
-        };
 
-   
-   
-        const updateCoupon = () => {
-            navigate("/company/updateCoupon", { state: { couponId: props.coupon.id } });
-        };
-   
-   
-        if (deleted) {
-            navigate(+1); 
-            return null;
-        }
+    const updateCoupon = () => {
+        navigate("/company/updateCoupon", { state: { couponId: coupon.id } });
+    };
 
-   
-        if (!props.coupon) {
-            return <div>Loading...</div>;
-        }
-   
+    if (deleted) {
+        navigate(0);
+        return null;
+    }
+
     return (
-        <div className="singleCoupon SolidBox" dir="rtl">
-            <h3 style={{textAlign:"center"}} dir="rtl"> {props.coupon.title}</h3> <hr/><br />
-            <b>id:</b> {props.coupon.id} <br /><br />
-            <b>קטגוריה:</b> {props.coupon.category}  <br /><br />
-            <b>תיאור:</b> {props.coupon.description} <br /><br/>
-            {store.getState().authState.userType==="ADMIN" || store.getState().authState.userType === "COMPANY"? 
-            <div>
-            <b>כמות:</b> {props.coupon.amount} <br /><br/>
+        <div className={`singleCoupon SolidBox ${isExpired ? 'expired' : ''}`} dir="rtl">
+            <h3 style={{ textAlign: "center" }}>{coupon.title}</h3>
+            <hr />
+
+            {isExpired && (
+                <div className="expired-badge">פג תוקף</div>
+            )}
+
+            {coupon.image && (
+                <img src={coupon.image} alt={coupon.title} className="coupon-image" />
+            )}
+
+            <div className="coupon-details" style={{ opacity: isExpired ? 0.5 : 1 }}>
+                <br />
+                <b>ID:</b> {coupon.id} <br /><br />
+                <b>קטגוריה:</b> {coupon.category} <br /><br />
+                <b>תיאור:</b> {coupon.description || "אין תיאור"} <br /><br />
+                {(store.getState().authState.userType === "COMPANY" || store.getState().authState.userType === "ADMIN") && (
+                    <>
+                        <b>כמות נותרה:</b> {coupon.amount} <br /><br />
+                    </>
+                )}
+                <b>תחילת מבצע:</b> {coupon.start_date} <br /><br />
+                <b>תוקף עד:</b> {coupon.end_date} <br /><br />
+                <b>מחיר:</b> ₪{coupon.price} <br /><br />
             </div>
-            :""}
-            <b>תאריך תחילת קופון:</b> {props.coupon.start_date} <br /><br/>
-            <b>תוקף קופון:</b> {props.coupon.end_date} <br /><br/>
-            <b>מחיר:</b> ₪ {props.coupon.price} <br /><br/>
-            <b>תמונה:</b> {props.coupon.image} <br /><br/>
-            {store.getState().authState.userType === "COMPANY"?
-            <ButtonGroup variant="contained" fullWidth>
-                <Button color="warning" onClick={updateCoupon}>עדכן קופון</Button>
-                <div>
-                    <Button color="error" dir="rtl" style={{width:100}} fullWidth onClick={handleDeleteYes}>מחיקת קופון</Button>
-                    <Dialog
-                        open={open}
-                        onClose={handleDeleteNo}
-                        aria-labelledby="alert-dialog-title"
-                        aria-describedby="alert-dialog-description"
-                    >
-                        <DialogTitle id="alert-dialog-title">
-                            {"?"+props.coupon.title+ " האם אתה בטוח שברצונך למחוק את קופון"}
-                        </DialogTitle>
-                        <DialogContent>
-                        <DialogContentText id="alert-dialog-description">
-                        לא ניתן לשחזר את הקופון לאחר המחיקה.
-                        הקופון יימחק גם אצל הלקוח, אבל הוא יוכל לממש את הקופון דרך המייל שלו
-                        </DialogContentText>
-                        </DialogContent>
-                        <DialogActions style={{ justifyContent: "center" }}>
-                        <Button color="inherit" style={{width:"100px"}} onClick={handleDeleteNo}>ביטול</Button>
-                        <Button color="error" style={{width:"100px"}} onClick={handleDeleteConfirm} autoFocus>
-                            למחוק
-                        </Button>
-                        </DialogActions>
-                    </Dialog>
-                    </div>
-            </ButtonGroup>
-            :""}
-   
-            {store.getState().authState.userType === "" || store.getState().authState.userType === "CUSTOMER"  ?
+
+            {store.getState().authState.userType === "COMPANY" && !isExpired && (
                 <ButtonGroup variant="contained" fullWidth>
-                    <Button color="primary" onClick={purchaseCoupon}
-                        disabled={couponPurchased || purchased}
-                        > {couponPurchased || purchased ? (
-                            <span>ניתן לרכוש רק קופון אחד</span>
-                        ) : (
-                            <span>רכישת קופון</span>
-                        )}</Button>
+                    <Button color="warning" onClick={updateCoupon}>עדכן קופון</Button>
+                    <Button color="error" onClick={() => setOpen(true)}>מחק קופון</Button>
                 </ButtonGroup>
-                :
-                ""} 
-            </div>
+            )}
+
+            {(store.getState().authState.userType === "CUSTOMER" || store.getState().authState.userType === "") && !isExpired && (
+                <Button variant="contained" color="primary" fullWidth onClick={purchaseCoupon} disabled={couponPurchased}>
+                    {couponPurchased ? "כבר נרכש" : "רכוש קופון"}
+                </Button>
+            )}
+
+            {isExpired && (
+                <div className="expired-message">
+                    קופון זה פג תוקף – לא ניתן לרכוש או לעדכן
+                </div>
+            )}
+
+            <Dialog open={open} onClose={() => setOpen(false)}>
+                <DialogTitle>למחוק את הקופון "{coupon.title}"?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>פעולה זו בלתי הפיכה</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpen(false)}>ביטול</Button>
+                    <Button onClick={handleDeleteConfirm} color="error">מחק</Button>
+                </DialogActions>
+            </Dialog>
+        </div>
     );
 }
 

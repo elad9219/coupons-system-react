@@ -9,6 +9,7 @@ import notify from "../../../util/notify";
 import globals from "../../../util/global";
 import { deleteCoupon } from "../../../redux/couponState";
 import advNotify from "../../../util/notify_advanced";
+import { format } from 'date-fns';
 
 interface SingleCouponProps {
     coupon?: Coupon;
@@ -39,7 +40,7 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                 if (response.status < 300) {
                     notify.success("קופון " + coupon.title + " נרכש בהצלחה!");
                     setPurchased(true);
-                    navigate(0); // refresh
+                    navigate(0);
                 }
             })
             .catch(err => {
@@ -97,8 +98,8 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                         <b>כמות נותרה:</b> {coupon.amount} <br /><br />
                     </>
                 )}
-                <b>תחילת מבצע:</b> {coupon.start_date} <br /><br />
-                <b>תוקף עד:</b> {coupon.end_date} <br /><br />
+                <b>תחילת מבצע:</b> {format(new Date(coupon.start_date), 'dd/MM/yyyy')} <br /><br />
+                <b>תוקף עד:</b> {format(new Date(coupon.end_date), 'dd/MM/yyyy')} <br /><br />
                 <b>מחיר:</b> ₪{coupon.price} <br /><br />
             </div>
 

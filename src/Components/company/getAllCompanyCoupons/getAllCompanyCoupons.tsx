@@ -1,35 +1,46 @@
 import "./getAllCompanyCoupons.css";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { store } from "../../../redux/store";
-import advNotify from "../../../util/notify_advanced";
 import { Coupon } from "../../../modal/Coupon";
+import { store } from "../../../redux/store";
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
-import SingleCoupon from '../singleCoupon/singleCoupon';
-import notify from "../../../util/notify";
+import SingleCoupon from "../singleCoupon/singleCoupon";
+import { useNavigate } from "react-router-dom";
+import advNotify from "../../../util/notify_advanced";
+import { Container, Typography } from "@mui/material";
 
 function GetAllCompanyCoupons(): JSX.Element {
     const navigate = useNavigate();
     const [coupons, setCoupons] = useState<Coupon[]>([]);
 
     useEffect(() => {
-        if (store.getState().authState.userType !== "COMPANY") {
+        if (store.getState().authState.userType!=="COMPANY") {
             advNotify.error("Please login...");
             navigate("/login");
         }
-        setCoupons(store.getState().couponState.coupon);
+        jwtAxios.get<Coupon[]>(globals.company.getAllCoupons)
+        .then(res => setCoupons(res.data))
+        .catch(err => advNotify.error("Error getting coupons..."));
     }, []);
 
+    const handleUpdateNavigate = (couponId: number) => {
+        navigate("/company/updateCoupon", { state: { couponId: couponId } });
+    };
+
     return (
-        <div className="getAllCompanyCoupons">
-            <div className="solid">
-                <h1>הקופונים של החברה</h1> <hr />
-                {coupons.map(item => <SingleCoupon key={item.id} coupon={item} updateCoupon={function (): void {
-                    throw new Error("Function not implemented.");
-                }} couponPurchased={false} />)}
+        <Container maxWidth="lg" sx={{ mt: 4 }}>
+            <Typography variant="h5" align="center" gutterBottom>כל הקופונים שלי</Typography>
+            <div className="CouponsList">
+                {coupons.map(item => (
+                    <SingleCoupon 
+                        key={item.id} 
+                        coupon={item} 
+                        updateCoupon={() => handleUpdateNavigate(item.id)} 
+                        // FIX: Removed couponPurchased={false}
+                    />
+                ))}
             </div>
-        </div>
+        </Container>
     );
 }
 

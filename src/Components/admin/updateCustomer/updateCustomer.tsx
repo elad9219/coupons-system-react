@@ -1,94 +1,63 @@
-import "./updateCustomer.css";
-import { Typography, TextField, Button, ButtonGroup } from "@mui/material";
-import { SyntheticEvent, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { TextField, Button, Container, Paper, Typography, Grid } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { store } from "../../../redux/store";
+import { Customer } from "../../../modal/Customer";
 import jwtAxios from '../../../util/JWTaxios';
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
-import advNotify, { ErrMsg } from '../../../util/notify_advanced';
-import { Customer } from "../../../modal/Customer";
-import { updateCustomer } from "../../../redux/customerState";
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 
 function UpdateCustomer(): JSX.Element {
-    const {register, handleSubmit, formState:{errors}} = useForm<Customer>();
-     //We will use useLocation hook to get the parameters that we are passing
     const location = useLocation();
-    //get the object from useLocation
-    const [customer,setCustomer] = useState<Customer | null>(null);
-    const {customerId} = location.state as any;
     const navigate = useNavigate();
-
+    const [customer, setCustomer] = useState<Customer | null>(null);
+    const customerId = (location.state as any)?.customerId;
 
     useEffect(() => {
-        // fetch the customer data by its id
+        if (!customerId) { navigate("/admin/getAllCustomers"); return; }
+
         jwtAxios.get(globals.admin.getOneCustomer + customerId)
-        .then(response => {
-            setCustomer(response.data);
-        })
-        .catch(error => {
-            console.log(error);
-        });
-    }, [customerId]);
+            .then(response => setCustomer(response.data))
+            .catch(() => notify.error("שגיאה בטעינת לקוח"));
+    }, [customerId, navigate]);
 
-    const send = ()=> {
-        console.log(customer);
-        jwtAxios.put(globals.admin.updateCustomer,customer)
-        .then(response => {
-            if (response.status<300) {
-                notify.success("עודכן בהצלחה "+ customer.first_name+" "+customer.last_name+  " לקוח");
+    const handleSave = () => {
+        if (!customer) return;
+        jwtAxios.put(globals.admin.updateCustomer, customer)
+            .then(() => {
+                notify.success("לקוח עודכן בהצלחה");
                 navigate("/admin/getAllCustomers");
-                store.dispatch(updateCustomer(customer)); 
-            }
-        })
-        .catch(err=>{
-            notify.error("בעיה בעדכון לקוח");
-            console.error(err.data);
-        })
+            })
+            .catch(() => notify.error("שגיאה בעדכון"));
     };
 
-    const emailChange = (args:SyntheticEvent)=> {
-        const newCustomer = { ...customer };
-        newCustomer.email = (args.target as HTMLInputElement).value;
-        setCustomer(newCustomer);
-    };
-
-
-    if (!customer) {
-        return <div>Loading...</div>;
-    }
+    if (!customer) return <LoadingSpinner />;
 
     return (
-        <div className="updateCustomer SolidBox">
-            <Typography variant="h3" className="HeadLine" >עדכון לקוח</Typography><hr /><br />
-            <form onSubmit={handleSubmit(send)}>
-            <TextField name="email" label="מייל" variant="outlined" fullWidth {...register("email",{
-            required: {
-                value: true,
-                message: 'יש להקיש מייל תקני'
-            }
-            })} placeholder={customer.email} defaultValue={customer.email} onChange={emailChange}/>
-            <span>{errors.email?.message}</span>
-            <br />
-            <br /><br />
-            <TextField name="name" label="שם פרטי" variant="outlined" fullWidth {...register("first_name",{
-
-            })} value={customer.first_name} disabled/>
-            <br />
-            <br /><br />
-            <TextField name="name" label="שם משפחה" variant="outlined" fullWidth {...register("last_name",{
-
-            })} value={customer.last_name} disabled/>
-            <br />
-            <br /><br />
-
-            <ButtonGroup variant="contained" fullWidth>
-                <Button type="submit" color="primary">עדכן לקוח</Button>
-            </ButtonGroup>
-            <br />
-            </form>
-        </div>
+        <Container maxWidth="sm" sx={{ mt: 4 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
+                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                    עדכון פרטי לקוח
+                </Typography>
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField label="שם פרטי" fullWidth size="small" value={customer.first_name} onChange={e => setCustomer({...customer, first_name: e.target.value})} />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField label="שם משפחה" fullWidth size="small" value={customer.last_name} onChange={e => setCustomer({...customer, last_name: e.target.value})} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField label="אימייל" fullWidth size="small" value={customer.email} onChange={e => setCustomer({...customer, email: e.target.value})} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField label="סיסמה" fullWidth size="small" value={customer.password} onChange={e => setCustomer({...customer, password: e.target.value})} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Button variant="contained" fullWidth onClick={handleSave}>שמור שינויים</Button>
+                    </Grid>
+                </Grid>
+            </Paper>
+        </Container>
     );
 }
 

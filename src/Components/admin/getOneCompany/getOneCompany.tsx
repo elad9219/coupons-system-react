@@ -1,79 +1,69 @@
+import { Button, TextField, Container, Paper, Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { store } from "../../../redux/store";
-import advNotify from "../../../util/notify_advanced";
-import "./getOneCompany.css";
-import jwtAxios from '../../../util/JWTaxios';
-import globals from "../../../util/global";
 import { Company } from "../../../modal/Company";
+import { store } from "../../../redux/store";
+import globals from "../../../util/global";
+import jwtAxios from "../../../util/JWTaxios";
 import notify from "../../../util/notify";
-import { downloadCompanies, downloadSingleCompany, getSingleCompany } from "../../../redux/companyState";
+import advNotify from "../../../util/notify_advanced";
 import SingleCompany from "../../company/singleCompany/singleCompany";
-import { Button, ButtonGroup } from '@mui/material';
-import { TextField } from '@mui/material';
 
-
-interface GetOneCompanyProps {
-    company? : Company;
-}
-
-
-function GetOneCompany(props: GetOneCompanyProps): JSX.Element {
+function GetOneCompany(): JSX.Element {
     const navigate = useNavigate();
-    const [getCompany, setGetCompany] = useState(false);
-    const [company, setCompany] = useState<Company | undefined>(props.company);
-    const [companyId, setCompanyId] = useState(0);
-
-
+    const [company, setCompany] = useState<Company | null>(null);
+    const [companyId, setCompanyId] = useState(1); // Default ID 1
 
     useEffect(() => {
-        if (store.getState().authState.userType!="ADMIN") {
-            advNotify.error("Please login...");
+        if (store.getState().authState.userType !== "ADMIN") {
+            advNotify.error("Access Denied");
             navigate("/login");
         }
-    },[]);
+    }, [navigate]);
 
+    const findCompany = () => {
+        if (companyId < 1) { notify.error("ID לא חוקי"); return; }
 
+        jwtAxios.get(globals.admin.getOneCompany + companyId)
+            .then((response) => {
+                setCompany(response.data);
+            })
+            .catch(() => {
+                notify.error("חברה לא נמצאה");
+                setCompany(null);
+            });
+    };
 
-        const findCompany = () => {
-            jwtAxios.get(globals.admin.getOneCompany + companyId)
-                .then((response) => {
-                    setCompany(response.data);
-                    setGetCompany(true);
-                })
-                .catch((err) => {
-                    notify.error("חברה לא נמצאה");
-                    console.error(err.data);
-                });
-        };
-    
-        const updateCompany = () => {
-            navigate("/admin/updateCompany", { state: { companyId: company.id } });
-        };
+    const handleUpdate = () => {
+        if (company) navigate("/admin/updateCompany", { state: { companyId: company.id } });
+    };
 
-        
-        
-    
     return (
-        <div className="getOneCompany">
-			<h1> קבלת חברה לפי id</h1> <hr />
-            <div className="SolidBox">
-            <TextField type={"number"} name="companyId" label="id" fullWidth
-            value={companyId}
-            onChange={(event) => setCompanyId(event.target.value as unknown as number)}/>
-            <br /><br />
-            <Button variant="contained" fullWidth color="primary" onClick={findCompany}>מצא חברה</Button>
-            <br /><br />
-            {getCompany ? (
-                <SingleCompany company={company} updateCompany={updateCompany} />
-            ) : (
-                ""
-            )}
-            </div>
-        </div>
+        <Container maxWidth="sm" sx={{ mt: 4 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
+                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                    חיפוש חברה
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                    <TextField 
+                        type="number" label="מזהה חברה (ID)" fullWidth size="small"
+                        value={companyId}
+                        onChange={(e) => setCompanyId(+e.target.value)}
+                        InputProps={{ inputProps: { min: 1 } }}
+                    />
+                    <Button variant="contained" onClick={findCompany} sx={{ minWidth: 100 }}>חפש</Button>
+                </Box>
+                
+                {company && (
+                    <SingleCompany 
+                        company={company} 
+                        updateCompany={handleUpdate} 
+                        onDelete={() => setCompany(null)}
+                    />
+                )}
+            </Paper>
+        </Container>
     );
 }
 
 export default GetOneCompany;
-
-

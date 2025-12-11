@@ -1,38 +1,33 @@
-html, body, #root {
-  margin: 0; /*  המרחק של האובייקט כלפי חוץ  */
-  padding: 0; /*  המרחק של האובייקטים הפנימיים כלפי האובייקט עצמו  */
-  height: 100%; /* כל המסך */
-  text-align: center; /* שכל הטקסטים יהיו במרכז */
-  color: rgb(28, 18, 18);
-  background-image: linear-gradient(45deg, lightblue, white);
-}
-/*
-html{
-  overflow:scroll;
-  scroll-behavior: smooth;
-}
-*/
-
-a {
-  color: blue;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f6f8; /* Light professional background */
+  height: 100vh;
+  box-sizing: border-box;
 }
 
-.Box {
-  display: inline-block;
-  text-align: left;
-  border: 2px dashed black;  /*  מקווקו */
-  padding: 5px;
-  margin: 10px;
-  border-radius: 10px;
-  box-shadow: 5px 5px 10px;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
 
-.SolidBox {
-  display: inline-block;
-  text-align: left;
-  border: 2px solid black;  /*  מדגיש את התיבה המסומנת */
-  padding: 5px;
-  margin: 10px;
-  border-radius: 10px;
-  box-shadow: 5px 5px 10px;
+/* Remove the old dashed border classes - we will use MUI Paper/Card instead */
+/* Scrollbar styling for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

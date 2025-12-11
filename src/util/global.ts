@@ -40,14 +40,13 @@ class DevelopmentGlobals extends Globals {
         allSystemCoupons: "http://localhost:8080/guest/allSystemCoupons",
         allCouponsByMaxPrice: "http://localhost:8080/guest/allCouponsByMaxPrice",
         allCouponsByCategory: "http://localhost:8080/guest/allCouponsByCategory",
+        register: "http://localhost:8080/guest/register", // Added register URL
     }
     public urls = {
         login: "http://localhost:8080/login",
         guest: "http://localhost:8080/",
     }
 }
-
-
 
 class ProductionGlobals extends Globals {
     public admin = {
@@ -88,6 +87,7 @@ class ProductionGlobals extends Globals {
         allSystemCoupons: "guest/allSystemCoupons",
         allCouponsByCategory: "/guest/allCouponsByCategory",
         allCouponsByMaxPrice: "guest/allCouponsByMaxPrice",
+        register: "/guest/register", // Added register URL
     }
     public urls = {
         login: "/login",
@@ -96,5 +96,3 @@ class ProductionGlobals extends Globals {
 
 const globals = process.env.NODE_ENV === 'production' ? new ProductionGlobals : new DevelopmentGlobals;
 export default globals;
-
-

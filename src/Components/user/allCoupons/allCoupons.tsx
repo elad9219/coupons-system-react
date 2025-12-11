@@ -1,126 +1,122 @@
 import "./allCoupons.css";
-import { Coupon } from '../../../modal/Coupon';
 import { useEffect, useState } from "react";
-import { store } from "../../../redux/store";
+import { Coupon } from "../../../modal/Coupon";
+import jwtAxios from "../../../util/JWTaxios";
+import globals from "../../../util/global";
 import SingleCoupon from "../../company/singleCoupon/singleCoupon";
-import jwtAxios from '../../../util/JWTaxios';
-import globals from '../../../util/global';
-import { downloadCoupons } from "../../../redux/couponState";
-import notify from '../../../util/notify';
+import { FormControl, InputLabel, MenuItem, Select, Slider, Grid, Typography, Paper, Container, Box } from "@mui/material";
 import { CouponCategory } from "../../../modal/CouponCategory";
-import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Slider } from "@mui/material";
+import { getHebrewCategory } from "../../../util/categories";
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
+import { store } from "../../../redux/store";
 
 function AllCoupons(): JSX.Element {
-    const [coupons,setCoupons] = useState<Coupon[]>([]);
+    const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [maxPrice, setMaxPrice] = useState<number>(10000);
+    const [displayPrice, setDisplayPrice] = useState<number>(10000);
     const [category, setCategory] = useState<CouponCategory>(CouponCategory.ALL);
-    
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        jwtAxios.get<Coupon[]>(globals.guest.allSystemCoupons)
-        .then((response) => {
-            store.dispatch(downloadCoupons(response.data));
-            getCoupons();
-        })
-        .catch((err) => {
-            notify.error("אין קופונים במערכת");
-        })
-    },[maxPrice, category]);
-
-
-    async function getCouponsByCategoryAndPrice(category: CouponCategory, maxPrice: number): Promise<Coupon[]> {
-        let response;
-        if (category === CouponCategory.ALL) {
-            response = await jwtAxios.get<Coupon[]>(globals.guest.allSystemCoupons);
-        } else {
-            response = await jwtAxios.get<Coupon[]>(`${globals.guest.allCouponsByCategory}/${category}`);
+        // Force fetch customer details if logged in as customer to know what is purchased
+        if (store.getState().authState.userType === "CUSTOMER") {
+             jwtAxios.get(globals.customer.getAllCoupons)
+                .then(res => store.dispatch({ type: "DOWNLOAD_CUSTOMERS", payload: [{ coupons: res.data }] }))
+                .catch(() => {});
         }
-        const filteredCoupons = response.data.filter(coupon => coupon.price <= maxPrice);
-        return filteredCoupons;
-    }
+        fetchCoupons();
+    }, [maxPrice, category]);
 
-
-    const getCoupons = async () => {
+    const fetchCoupons = async () => {
+        setLoading(true);
         try {
-            const couponsByCategoryAndPrice = await getCouponsByCategoryAndPrice(category, maxPrice);
-            setCoupons(couponsByCategoryAndPrice);
+            let url = globals.guest.allSystemCoupons;
+            if (category !== CouponCategory.ALL) {
+                url = `${globals.guest.allCouponsByCategory}/${category}`;
+            }
+            const response = await jwtAxios.get<Coupon[]>(url);
+            const filtered = response.data.filter(c => c.price <= maxPrice);
+            setCoupons(filtered);
         } catch (error) {
-            setCoupons([]);
+            setCoupons([]); 
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
+        setDisplayPrice(newValue as number);
+    };
+
+    const handleSliderCommit = (event: Event | React.SyntheticEvent, newValue: number | number[]) => {
         setMaxPrice(newValue as number);
     };
 
-    const handleSelectChange = (event: SelectChangeEvent<CouponCategory>) => {
-        const value = event.target.value as CouponCategory;
-        setCategory(value);
-    };
-
-
-    const marks = [
-        { value: 100, label: "100₪" },
-        { value: 2500, label: "2,500₪" },
-        { value: 5000, label: "5,000₪" },
-        { value: 7500, label: "7,500₪" },
-        { value: 10000, label: "10,000₪" },
-    ];
-
-    function SliderSizes() {
-        const setValue = (newValue: number) => {
-        setMaxPrice(newValue);
-        }
-            return setValue;
-    };
-    
-
-    
     return (
-        <div className="allCoupons">
-			<h3>קופונים במערכת</h3> 
-            <div className="solid">
-            <Box sx={{ width: 450, margin: "0 auto" }}>
-            <p style={{fontSize:"13px"}}>מחיר מקסימלי</p>
-        <Slider
-            size="medium"
-            aria-label="Small"
-            valueLabelDisplay="auto"
-            min={100}
-            max={10000}
-            step={100}
-            marks={marks}
-            value={maxPrice}
-            onChange={(_, newValue) => SliderSizes()(newValue as number)}
-            sx={{
-                width: "100%",
-            }}
-            />
-        </Box>
-        ₪ <input type="number" placeholder="Max price" value={maxPrice} style={{width:75}} onChange={(e) => setMaxPrice(Number(e.target.value))}/>
-        <FormControl sx={{display: "flex",justifyContent: "center", maxWidth: "250px"}} id="category-wrapper">
-        <InputLabel id="category" sx={{position: "absolute",top: "0px",left: "25px",padding: "0 4px"
-        ,fontSize: "13px",fontWeight: "bold",}}>קטגוריה</InputLabel>
-        <Select labelId="category" label="קטגוריה" value={category} sx={{mx: "auto", width: "200px"}} onChange={handleSelectChange}
-            id="category-select"
-            >
-            <MenuItem value={CouponCategory.ALL} dir="rtl">כל הקטגוריות</MenuItem>
-            <MenuItem value={CouponCategory.FOOD} dir="rtl">אוכל</MenuItem>
-            <MenuItem value={CouponCategory.VACATION} dir="rtl">חופשה</MenuItem>
-            <MenuItem value={CouponCategory.HOTELS} dir="rtl">מלונות</MenuItem>
-            <MenuItem value={CouponCategory.ELECTRICITY} dir="rtl">מוצרי חשמל</MenuItem>
-            <MenuItem value={CouponCategory.RESTAURANT} dir="rtl">מסעדות</MenuItem>
-            <MenuItem value={CouponCategory.SPA} dir="rtl">ספא</MenuItem>
-            <MenuItem value={CouponCategory.ATTRACTIONS} dir="rtl">אטרקציות</MenuItem>
-            <MenuItem value={CouponCategory.CLOTHING} dir="rtl">ביגוד</MenuItem>
-            <MenuItem value={CouponCategory.BOWLING} dir="rtl">באולינג</MenuItem>
-            <MenuItem value={CouponCategory.OTHER}dir="rtl">אחר</MenuItem>
-            </Select>
-            </FormControl>
-            {coupons.map(item=><SingleCoupon key={item.id} coupon={item} updateCoupon={function (): void {
-                throw new Error("Function not implemented.");
-            } } couponPurchased={false}/>)}
-            </div>
-        </div>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            <Typography variant="h4" gutterBottom align="center" fontWeight="bold" color="primary">
+                כל הקופונים במערכת
+            </Typography>
+            
+            {/* Filters - Always Visible */}
+            <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+                <Grid container spacing={4} alignItems="center" justifyContent="center">
+                    <Grid item xs={12} md={4}>
+                        <Typography gutterBottom variant="body2">סינון לפי מחיר: ₪{displayPrice}</Typography>
+                        <Slider
+                            value={displayPrice}
+                            min={0}
+                            max={10000}
+                            step={50}
+                            onChange={handleSliderChange}
+                            onChangeCommitted={handleSliderCommit}
+                            valueLabelDisplay="auto"
+                            sx={{direction: 'ltr'}} 
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>קטגוריה</InputLabel>
+                            <Select
+                                value={category}
+                                label="קטגוריה"
+                                onChange={(e) => setCategory(e.target.value as CouponCategory)}
+                            >
+                                <MenuItem value={CouponCategory.ALL}>הכל</MenuItem>
+                                {Object.values(CouponCategory).filter(c => c !== "ALL").map(cat => (
+                                    <MenuItem key={cat} value={cat} dir="rtl">
+                                        {getHebrewCategory(cat)}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+            </Paper>
+
+            {/* Content Area */}
+            {loading ? (
+                <LoadingSpinner />
+            ) : (
+                <Grid container spacing={3}>
+                    {coupons.map(item => (
+                        <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
+                            <SingleCoupon 
+                                coupon={item} 
+                                updateCoupon={() => {}} 
+                                isOwned={false}
+                            />
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
+            
+            {!loading && coupons.length === 0 && (
+                <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
+                    לא נמצאו קופונים התואמים את הסינון.
+                </Typography>
+            )}
+        </Container>
     );
 }
 

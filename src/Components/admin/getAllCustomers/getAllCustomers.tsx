@@ -1,59 +1,64 @@
 import "./getAllCustomers.css";
 import { useState, useEffect } from 'react';
-import advNotify from '../../../util/notify_advanced';
 import { useNavigate } from 'react-router-dom';
 import { store } from "../../../redux/store";
 import { Customer } from "../../../modal/Customer";
-import GetCustomerDetails from '../../customer/singleCustomer/singleCustomer';
 import SingleCustomer from "../../customer/singleCustomer/singleCustomer";
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
-import { downloadCustomers } from "../../../redux/customerState";
+import { Container, Grid, Typography, CircularProgress } from "@mui/material";
+import advNotify from "../../../util/notify_advanced";
 
 function GetAllCustomers(): JSX.Element {
     const navigate = useNavigate();
     const [customers, setCustomers] = useState<Customer[]>([]);
-    
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (store.getState().authState.userType !== "ADMIN") {
-            advNotify.error("Please login...");
+            advNotify.error("Please login as Admin");
             navigate("/login");
+            return;
         }
-/*
-        if (store.getState().customerState.customer.length < 1) {
-            jwtAxios.get<Customer[]>(globals.admin.getAllCustomers)
-                .then(response => {
-                    store.dispatch(downloadCustomers(response.data));
-                    setCustomers(response.data);
-                });
-        } else {
-            setCustomers(store.getState().customerState.customer);
-        }
-        */
-
-        async function fetchData() {
-            try {
-                const response = await jwtAxios.get<Customer[]>(globals.admin.getAllCustomers);
+        
+        jwtAxios.get<Customer[]>(globals.admin.getAllCustomers)
+            .then(response => {
                 setCustomers(response.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-        fetchData();
-    }, []);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.log(err);
+                setLoading(false);
+            });
+    }, [navigate]);
 
+    const handleDelete = (id: number) => {
+        setCustomers(customers.filter(c => c.id !== id));
+    };
+
+    const handleUpdate = (customer: Customer) => {
+        navigate("/admin/updateCustomer", { state: { customerId: customer.id } });
+    };
+
+    if (loading) return <Container sx={{textAlign:'center', mt:5}}><CircularProgress/></Container>;
 
     return (
-        <div className="getAllCustomers">
-			<h1>קבלת לקוחות</h1> <hr />
-            {/* {customers.map(item=><SingleCustomer key={item.id} customer={item}/>)} */}
-            {customers.map((customer: Customer) => (
-                    <SingleCustomer key={customer.id} customer={customer} updateCustomer={function (): void {
-                    throw new Error("Function not implemented.");
-                } } />
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary">
+                ניהול לקוחות
+            </Typography>
+            <Grid container spacing={3}>
+                {customers.map((customer) => (
+                    <Grid item key={customer.id} xs={12} sm={6} md={4} lg={3}>
+                        <SingleCustomer 
+                            customer={customer} 
+                            updateCustomer={() => handleUpdate(customer)} // Fix: pass function correctly
+                            onDelete={handleDelete} // Fix: update UI immediately
+                        />
+                    </Grid>
                 ))}
-        </div>
+            </Grid>
+        </Container>
     );
 }
 

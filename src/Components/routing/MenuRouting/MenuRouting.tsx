@@ -13,27 +13,25 @@ import UpdateCustomer from '../../admin/updateCustomer/updateCustomer';
 import Page404 from '../../user/page404/page404';
 import AddCoupon from '../../company/addCoupon/addCoupon';
 import DeleteCoupon from '../../company/deleteCoupon/deleteCoupon';
-import GetAllCompanyCoupons from '../../company/getAllCompanyCoupons/getAllCompanyCoupons';
 import GetCouponsByCategory from '../../company/getCouponsByCategory/getCouponsByCategory';
 import GetCouponsByMaxPrice from '../../company/getCouponsByMaxPrice/getCouponsByMaxPrice';
-import UpdateCoupon from '../../company/updateCoupon/updateCoupon';
 import GetCustomerCoupons from '../../customer/getCustomerCoupons/getCustomerCoupons';
 import GetCustomerCouponsByCategory from '../../customer/getCustomerCouponsByCategory/getCustomerCouponsByCategory';
 import GetCustomerCouponsByMoney from '../../customer/getCustomerCouponsByMaxPrice/getCustomerCouponsByMaxPrice';
-import Login from '../../user/login/login';
 import UpdateCompany from "../../admin/updateCompany/updateCompany";
 import Menu from '../../mainLayout/menu/menu';
 import GetCompanyDetails from "../../company/getCompanyDetails/getCompanyDetails";
 import GetCustomerDetails from "../../customer/getCustomerDetails/getCustomerDetails";
 import GetAllCompanyCoupons2 from '../../company/getAllCompanyCoupons2/getAllCompanyCoupons2';
-import GetCustomerCouponsByMaxPrice from "../../customer/getCustomerCouponsByMaxPrice/getCustomerCouponsByMaxPrice";
-// import GetOneCoupon from "../../company/getOneCoupon/getOneCoupon";
+import Register from "../../user/register/register";
+import Login from "../../user/login/login";
+import UpdateCoupon from "../../company/updateCoupon/updateCoupon";
 
 function MenuRouting(): JSX.Element {
     return (
         <div className="MenuRouting">
-			<Routes>
-                {/* Admin */}
+            <Routes>
+                {/* Admin Routes */}
                 <Route path="/" element= {<MainPage/>}/>
                 <Route path="/adminMenu" element= {<Menu/>}/>
                 <Route path="admin/addCompany" element= {<AddCompany/>}/>
@@ -44,31 +42,32 @@ function MenuRouting(): JSX.Element {
                 <Route path="admin/getAllCustomers" element= {<GetAllCustomers/>}/>
                 <Route path="admin/getCustomer" element= {<GetCustomer/>}/>
                 <Route path="admin/getOneCompany" element= {<GetOneCompany/>}/>
+                
+                {/* Fixed Paths for Update to match navigate() calls */}
                 <Route path="admin/updateCompany" element= {<UpdateCompany/>}/>
                 <Route path="admin/updateCustomer" element= {<UpdateCustomer/>}/>
 
-                {/* Company */}
+                {/* Company Routes */}
                 <Route path="company/addCoupon" element= {<AddCoupon/>}/>
                 <Route path="company/deleteCoupon" element= {<DeleteCoupon/>}/>
-                {/*<Route path="company/allCoupons" element= {<GetAllCompanyCoupons/>}/>*/}
                 <Route path="company/allCoupons" element= {<GetAllCompanyCoupons2/>}/>
                 <Route path="company/getComapnyDetails" element= {<GetCompanyDetails/>}/>
                 <Route path="company/getCouponsByCategory" element= {<GetCouponsByCategory/>}/>
                 <Route path="company/getCouponsByMaxPrice" element= {<GetCouponsByMaxPrice/>}/>
+                
+                {/* Fixed Path for Update Coupon */}
                 <Route path="company/updateCoupon" element= {<UpdateCoupon/>}/>
-                {/* <Route path="company/getOneCoupon" element= {<GetOneCoupon/>}/> */}
+                <Route path="company/update" element= {<UpdateCompany/>}/> {/* Added alias for company self-update */}
 
-
-                {/* Customer */}
+                {/* Customer Routes */}
                 <Route path="customer/customerCoupons" element= {<GetCustomerCoupons/>}/>
                 <Route path="customer/getCustomerCouponsByCategory" element= {<GetCustomerCouponsByCategory/>}/>
-                <Route path="customer/getCustomerCouponsByMaxPrice" element= {<GetCustomerCouponsByMaxPrice/>}/>
+                <Route path="customer/getCustomerCouponsByMaxPrice" element= {<GetCustomerCouponsByMoney/>}/>
                 <Route path="customer/customerDetails" element= {<GetCustomerDetails/>}/>
 
-
-
-                {/* General */}
+                {/* General Routes */}
                 <Route path="login" element= {<Login/>}/>
+                <Route path="register" element= {<Register/>}/>
                 <Route path="guest" element= {<MainPage/>}/>
                 <Route path="*" element= {<Page404/>}/>
             </Routes>

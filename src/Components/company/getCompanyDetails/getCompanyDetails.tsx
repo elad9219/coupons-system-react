@@ -3,52 +3,45 @@ import { useNavigate } from "react-router-dom";
 import { Company } from "../../../modal/Company";
 import { store } from "../../../redux/store";
 import jwtAxios from "../../../util/JWTaxios";
-import advNotify from "../../../util/notify_advanced";
 import SingleCompany from "../singleCompany/singleCompany";
-import "./getCompanyDetails.css";
+import "./getCompanyDetails.css"; // CSS Import
 import globals from '../../../util/global';
 import { downloadSingleCompany } from "../../../redux/companyState";
+import { Container, Paper, Typography, Box } from "@mui/material";
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 
 function GetCompanyDetails(): JSX.Element {
     const navigate = useNavigate();
     const [company, setCompany] = useState<Company | null>(null);
-    const [loading, setLoading] = useState(true);  // English: Added loading
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (store.getState().authState.userType!="COMPANY") {
-            advNotify.error("Please login...");
-            navigate("/login");
-            return;
-        }
-
-        setLoading(true);
-
         jwtAxios.get<Company>(globals.company.getCompanyDetails)
             .then((response) => {
                 setCompany(response.data);
                 store.dispatch(downloadSingleCompany([response.data]));
                 setLoading(false);
             })
-            .catch(err => {
-                advNotify.error("Failed to load company details");
-                console.log(err);
+            .catch(() => {
                 setLoading(false);
+                navigate("/login");
             });
-    }, []);
+    }, [navigate]);
 
-    if (loading) {
-        return <div>Loading...</div>;  // English: Loading screen
-    }
-
-    if (!company) {
-        return <div>No company found</div>;
-    }
+    if (loading) return <LoadingSpinner />;
+    if (!company) return <Typography>שגיאה בטעינת נתונים</Typography>;
 
     return (
-        <div className="getCompanyDetails">
-			<h1> פרטי חברה </h1> <hr />
-            <SingleCompany company={company} updateCompany={() => {}} />
-        </div>
+        <Container maxWidth="xs" sx={{ mt: 4 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
+                <Typography variant="h5" gutterBottom align="center" fontWeight="bold" color="primary">
+                    פרטי חברה
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                    <SingleCompany company={company} updateCompany={() => navigate("/company/update")} />
+                </Box>
+            </Paper>
+        </Container>
     );
 }
 

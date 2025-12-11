@@ -1,6 +1,6 @@
 import "./addCoupon.css";
 import { useNavigate } from "react-router-dom";
-import { Button, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Button, InputLabel, MenuItem, Select, TextField, Typography, Container, Paper, Grid } from "@mui/material";
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import AdapterDateFns from '@date-io/date-fns';
 import heLocale from 'date-fns/locale/he';
@@ -11,16 +11,14 @@ import globals from '../../../util/global';
 import notify from '../../../util/notify';
 import { store } from "../../../redux/store";
 import { Coupon } from '../../../modal/Coupon';
-import { addCoupon } from "../../../redux/couponState";
 import advNotify from "../../../util/notify_advanced";
 import { CouponCategory } from "../../../modal/CouponCategory";
 import { format, addDays, isAfter } from 'date-fns';
+import { getHebrewCategory } from "../../../util/categories";
 
 function AddCoupon(): JSX.Element {
-    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<Coupon>();
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<Coupon>();
     const navigate = useNavigate();
-
-    // מצב לקטגוריה – כדי שה-Select יראה את הבחירה
     const [selectedCategory, setSelectedCategory] = useState<string>("");
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
@@ -36,92 +34,98 @@ function AddCoupon(): JSX.Element {
         jwtAxios.post(globals.company.addCoupon, data)
             .then(() => {
                 notify.success("קופון נוסף בהצלחה");
-                store.dispatch(addCoupon(data));
-                navigate("/");
+                navigate("/company/allCoupons"); 
             })
             .catch(() => notify.error("שגיאה בהוספה"));
     };
 
     return (
-        <div className="addCoupon">
-            <Typography variant="h4">הוספת קופון</Typography><hr/>
-            <div className="SolidBox" style={{padding: 20}}>
+        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                    יצירת קופון חדש
+                </Typography>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={heLocale}>
-                        {/* קטגוריה – עובד ויזואלית + שומר ב-form */}
-                        <InputLabel>קטגוריה</InputLabel>
-                        <Select
-                            fullWidth
-                            value={selectedCategory}
-                            onChange={(e) => {
-                                const value = e.target.value as string;
-                                setSelectedCategory(value);
-                                setValue("category", value, { shouldValidate: true });
-                            }}
-                            displayEmpty
-                            renderValue={(selected) => selected ? selected : "בחר קטגוריה"}
-                        >
-                            {Object.values(CouponCategory)
-                                .filter(c => c !== "ALL")
-                                .map(c => (
-                                    <MenuItem key={c} value={c}>{c}</MenuItem>
-                                ))}
-                        </Select>
-                        {errors.category && <span style={{color: "red"}}>{errors.category.message}</span>}
-                        <br/><br/>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <InputLabel id="cat-label" sx={{mb:1}}>קטגוריה</InputLabel>
+                                <Select
+                                    labelId="cat-label"
+                                    fullWidth
+                                    size="small"
+                                    value={selectedCategory}
+                                    onChange={(e) => {
+                                        const value = e.target.value as string;
+                                        setSelectedCategory(value);
+                                        setValue("category", value, { shouldValidate: true });
+                                    }}
+                                    displayEmpty
+                                >
+                                    <MenuItem value="" disabled>בחר קטגוריה</MenuItem>
+                                    {Object.values(CouponCategory).filter(c => c !== "ALL").map(c => (
+                                        <MenuItem key={c} value={c}>{getHebrewCategory(c)}</MenuItem>
+                                    ))}
+                                </Select>
+                                {errors.category && <Typography color="error" variant="caption">חובה לבחור</Typography>}
+                            </Grid>
 
-                        <TextField label="כותרת" fullWidth {...register("title", {required: "חובה"})} />
-                        <br/><br/>
+                            <Grid item xs={12}>
+                                <TextField label="כותרת" size="small" fullWidth {...register("title", { required: "חובה" })} InputLabelProps={{ shrink: true }} />
+                            </Grid>
 
-                        <TextField label="תיאור" multiline rows={4} fullWidth {...register("description")} />
-                        <br/><br/>
+                            <Grid item xs={12}>
+                                <TextField label="תיאור" size="small" multiline rows={3} fullWidth {...register("description")} InputLabelProps={{ shrink: true }} />
+                            </Grid>
 
-                        <DatePicker
-                            label="תאריך התחלה"
-                            disablePast
-                            value={startDate}
-                            onChange={(newValue) => {
-                                setStartDate(newValue);
-                                if (newValue) {
-                                    setValue("start_date", format(newValue, 'yyyy-MM-dd'));
-                                }
-                            }}
-                            renderInput={(params) => <TextField {...params} fullWidth />}
-                        />
-                        <br/><br/>
+                            <Grid item xs={6}>
+                                <DatePicker
+                                    label="תאריך התחלה"
+                                    disablePast
+                                    value={startDate}
+                                    onChange={(newValue) => {
+                                        setStartDate(newValue);
+                                        if (newValue) setValue("start_date", format(newValue, 'yyyy-MM-dd'));
+                                    }}
+                                    renderInput={(params) => <TextField {...params} size="small" fullWidth InputLabelProps={{ shrink: true }} />}
+                                />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <DatePicker
+                                    label="תאריך סיום"
+                                    disablePast
+                                    value={endDate}
+                                    minDate={startDate ? addDays(startDate, 1) : undefined}
+                                    onChange={(newValue) => {
+                                        setEndDate(newValue);
+                                        if (newValue) setValue("end_date", format(newValue, 'yyyy-MM-dd'));
+                                    }}
+                                    shouldDisableDate={(date) => startDate ? !isAfter(date, startDate) : false}
+                                    renderInput={(params) => <TextField {...params} size="small" fullWidth InputLabelProps={{ shrink: true }} />}
+                                />
+                            </Grid>
 
-                        <DatePicker
-                            label="תאריך סיום"
-                            disablePast
-                            value={endDate}
-                            minDate={startDate ? addDays(startDate, 1) : undefined}
-                            onChange={(newValue) => {
-                                setEndDate(newValue);
-                                if (newValue) {
-                                    setValue("end_date", format(newValue, 'yyyy-MM-dd'));
-                                }
-                            }}
-                            shouldDisableDate={(date) => startDate ? !isAfter(date, startDate) : false}
-                            renderInput={(params) => <TextField {...params} fullWidth />}
-                        />
-                        <br/><br/>
+                            <Grid item xs={6}>
+                                <TextField type="number" label="כמות" size="small" fullWidth {...register("amount", { required: true, min: 1 })} InputLabelProps={{ shrink: true }} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <TextField type="number" label="מחיר (₪)" size="small" fullWidth {...register("price", { required: true, min: 1 })} InputLabelProps={{ shrink: true }} />
+                            </Grid>
 
-                        <TextField type="number" label="כמות" fullWidth {...register("amount", {required: true, min: 1})} />
-                        <br/><br/>
+                            <Grid item xs={12}>
+                                <TextField label="קישור לתמונה" size="small" fullWidth {...register("image", { required: true })} InputLabelProps={{ shrink: true }} />
+                            </Grid>
 
-                        <TextField type="number" label="מחיר" fullWidth {...register("price", {required: true, min: 1})} />
-                        <br/><br/>
-
-                        <TextField label="קישור לתמונה" fullWidth {...register("image", {required: true})} />
-                        <br/><br/>
-
-                        <Button type="submit" variant="contained" color="primary" fullWidth>
-                            הוסף קופון
-                        </Button>
+                            <Grid item xs={12}>
+                                <Button type="submit" variant="contained" color="primary" fullWidth size="large" sx={{ mt: 2 }}>
+                                    שמור ופרסם
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </LocalizationProvider>
                 </form>
-            </div>
-        </div>
+            </Paper>
+        </Container>
     );
 }
 

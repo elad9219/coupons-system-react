@@ -1,71 +1,68 @@
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, Container, Paper, Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Customer } from "../../../modal/Customer";
-import { getSingleCustomer } from "../../../redux/customerState";
 import { store } from "../../../redux/store";
 import globals from "../../../util/global";
 import jwtAxios from "../../../util/JWTaxios";
 import notify from "../../../util/notify";
 import advNotify from "../../../util/notify_advanced";
 import SingleCustomer from "../../customer/singleCustomer/singleCustomer";
-import "./getCustomer.css";
 
-
-interface SingleCustomerProps {
-    customer? : Customer;
-}
-
-
-function GetCustomer(props: SingleCustomerProps): JSX.Element {
+function GetCustomer(): JSX.Element {
     const navigate = useNavigate();
-    const [getCustomer, setGetCustomer] = useState(false);
-    const [customer, setCustomer] = useState(new Customer());
-    const [customerId, setCustomerId] = useState(0);
-
+    const [customer, setCustomer] = useState<Customer | null>(null);
+    const [customerId, setCustomerId] = useState(1); // Default ID 1
 
     useEffect(() => {
-        if (store.getState().authState.userType!="ADMIN") {
-            advNotify.error("Please login...");
+        if (store.getState().authState.userType!=="ADMIN") {
+            advNotify.error("Access Denied");
             navigate("/login");
         }
-    },[]);
-
+    },[navigate]);
 
     const findCustomer = () => {
+        if(customerId < 1) { notify.error("ID לא חוקי"); return; }
+        
         jwtAxios.get(globals.admin.getOneCustomer + customerId)
             .then((response) => {
                 setCustomer(response.data);
-                setGetCustomer(true);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 notify.error("לקוח לא נמצא");
-                console.error(err.data);
+                setCustomer(null);
             });
     };
 
-    const updateCustomer = () => {
-        navigate("/admin/updateCustomer", { state: { customerId: customer.id } });
+    const handleUpdate = () => {
+        if (customer) navigate("/admin/updateCustomer", { state: { customerId: customer.id } });
     };
 
     return (
-        <div className="getCustomer">
-			<h1>קבלת לקוח לפי id </h1> <hr />
-            <div className="SolidBox">
-            <TextField type={"number"} name="customerId" label="id" fullWidth
-            value={customerId}
-            onChange={(event) => setCustomerId(event.target.value as unknown as number)}/>
-            <br /><br />
-            <Button variant="contained" fullWidth color="primary" onClick={findCustomer}>מצא לקוח</Button>
-            <br /><br />
-            {getCustomer ? (
-                <SingleCustomer customer={customer} updateCustomer={updateCustomer} />
-            ) : (
-                ""
-            )}
-            </div>
-        </div>
+        <Container maxWidth="sm" sx={{ mt: 4 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
+                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                    חיפוש לקוח
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                    <TextField 
+                        type="number" label="מזהה לקוח (ID)" fullWidth size="small"
+                        value={customerId}
+                        onChange={(e) => setCustomerId(+e.target.value)}
+                        InputProps={{ inputProps: { min: 1 } }}
+                    />
+                    <Button variant="contained" onClick={findCustomer} sx={{ minWidth: 100 }}>חפש</Button>
+                </Box>
+                
+                {customer && (
+                    <SingleCustomer 
+                        customer={customer} 
+                        updateCustomer={handleUpdate} 
+                        onDelete={() => setCustomer(null)}
+                    />
+                )}
+            </Paper>
+        </Container>
     );
 }
 

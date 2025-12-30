@@ -18,6 +18,12 @@ function GetCustomerDetails(): JSX.Element {
     const [editMode, setEditMode] = useState(false);
 
     useEffect(() => {
+        if (store.getState().authState.userType !== "CUSTOMER") {
+            notify.error("Access Denied");
+            navigate("/login");
+            return;
+        }
+
         jwtAxios.get<Customer>(globals.customer.getCustomerDetails)
             .then(res => {
                 setCustomer(res.data);
@@ -30,17 +36,16 @@ function GetCustomerDetails(): JSX.Element {
 
     const handleSave = () => {
         if (!customer) return;
-        // Reuse the admin update endpoint as user is authorized to update themselves often via same logic,
-        // or ensure you have a specific customer update endpoint.
-        // Assuming admin endpoint works if logic allows, otherwise use customer specific.
-        // If this fails 403/401, you MUST add updateCustomer to CustomerController in backend.
-        jwtAxios.put(globals.admin.updateCustomer, customer) 
+        
+        // FIX: Using the correct CUSTOMER endpoint instead of ADMIN endpoint
+        jwtAxios.put(globals.customer.updateDetails, customer)
             .then(() => {
                 notify.success("פרטים עודכנו בהצלחה");
                 setEditMode(false);
             })
             .catch((err) => {
-                notify.error("שגיאה בעדכון פרטים");
+                const msg = err.response?.data?.description || "שגיאה בעדכון פרטים";
+                notify.error(msg);
             });
     };
 
@@ -56,20 +61,20 @@ function GetCustomerDetails(): JSX.Element {
                 
                 <Box component="form" sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <TextField 
-                        label="שם פרטי" size="small" value={customer.first_name} disabled={!editMode}
-                        onChange={e => setCustomer({...customer, first_name: e.target.value})}
+                        label="שם פרטי" size="small" value={customer.first_name} disabled={!editMode} 
+                        onChange={e => setCustomer({...customer, first_name: e.target.value})} 
                     />
                     <TextField 
-                        label="שם משפחה" size="small" value={customer.last_name} disabled={!editMode}
-                        onChange={e => setCustomer({...customer, last_name: e.target.value})}
+                        label="שם משפחה" size="small" value={customer.last_name} disabled={!editMode} 
+                        onChange={e => setCustomer({...customer, last_name: e.target.value})} 
                     />
                     <TextField 
-                        label="אימייל" size="small" value={customer.email} disabled={!editMode}
-                        onChange={e => setCustomer({...customer, email: e.target.value})}
+                        label="אימייל" size="small" value={customer.email} disabled={!editMode} 
+                        onChange={e => setCustomer({...customer, email: e.target.value})} 
                     />
-                    <TextField
-                        label="סיסמה" size="small" type={showPassword ? 'text' : 'password'} value={customer.password} disabled={!editMode}
-                        onChange={e => setCustomer({...customer, password: e.target.value})}
+                    <TextField 
+                        label="סיסמה" size="small" type={showPassword ? 'text' : 'password'} value={customer.password} disabled={!editMode} 
+                        onChange={e => setCustomer({...customer, password: e.target.value})} 
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -80,14 +85,14 @@ function GetCustomerDetails(): JSX.Element {
                             ),
                         }}
                     />
-
+                    
                     {editMode ? (
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button variant="contained" onClick={handleSave} fullWidth>שמור</Button>
-                            <Button variant="outlined" onClick={() => setEditMode(false)} fullWidth>ביטול</Button>
+                            <Button variant="contained" onClick={handleSave} fullWidth> שמור </Button>
+                            <Button variant="outlined" onClick={() => setEditMode(false)} fullWidth> ביטול </Button>
                         </Box>
                     ) : (
-                        <Button variant="contained" onClick={() => setEditMode(true)} fullWidth>עדכון פרטים</Button>
+                        <Button variant="contained" onClick={() => setEditMode(true)} fullWidth> עדכון פרטים </Button>
                     )}
                 </Box>
             </Paper>

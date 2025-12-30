@@ -23,7 +23,7 @@ class DevelopmentGlobals extends Globals {
         getCouponByCategory: "http://localhost:8080/company/allCouponsByCategory/",
         getCouponByMaxPrice: "http://localhost:8080/company/allCouponsByMaxPrice/",
         updateCoupon: "http://localhost:8080/company/updateCoupon",
-        updateDetails: "http://localhost:8080/company/updateDetails", // Added this line
+        updateDetails: "http://localhost:8080/company/updateDetails",
         getAllCompanyCoupons2: "http://localhost:8080/company/allCoupons",
         getOneCompanyCoupon: "http://localhost:8080/company/getOneCoupon/"
     }
@@ -32,7 +32,8 @@ class DevelopmentGlobals extends Globals {
         getAllCoupons: "http://localhost:8080/customer/customerCoupons",
         getCouponsByCategory: "http://localhost:8080/customer/customerCouponsByCategory",
         getCouponsByMaxPrice: "http://localhost:8080/customer/customerCouponsByMaxPrice",
-        getCustomerDetails: "http://localhost:8080/customer/customerDetails/",
+        getCustomerDetails: "http://localhost:8080/customer/customerDetails",
+        updateDetails: "http://localhost:8080/customer/updateDetails", // Added this
     }
     public coupon = {
         allCoupons: "http://localhost:8080/allCoupons/",
@@ -71,7 +72,7 @@ class ProductionGlobals extends Globals {
         getCouponByCategory: "/company/allCouponsByCategory",
         getCouponByMaxPrice: "/company/allCouponsByMaxPrice",
         updateCoupon: "/company/updateCoupon",
-        updateDetails: "/company/updateDetails", // Added this line
+        updateDetails: "/company/updateDetails",
         getAllCompanyCoupons2: "/company/allCoupons",
         getOneCompanyCoupon: "/company/getOneCompany/"
     }
@@ -81,6 +82,7 @@ class ProductionGlobals extends Globals {
         getCouponsByCategory: "/customer/customerCouponsByCategory/",
         getCouponsByMaxPrice: "/customer/customerCouponsByMaxPrice/",
         getCustomerDetails: "/customer/customerDetails",
+        updateDetails: "/customer/updateDetails", // Added this
     }
     public coupon = {
         allCoupons: "/allCoupons",

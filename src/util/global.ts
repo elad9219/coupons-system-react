@@ -23,6 +23,7 @@ class DevelopmentGlobals extends Globals {
         getCouponByCategory: "http://localhost:8080/company/allCouponsByCategory/",
         getCouponByMaxPrice: "http://localhost:8080/company/allCouponsByMaxPrice/",
         updateCoupon: "http://localhost:8080/company/updateCoupon",
+        updateDetails: "http://localhost:8080/company/updateDetails", // Added this line
         getAllCompanyCoupons2: "http://localhost:8080/company/allCoupons",
         getOneCompanyCoupon: "http://localhost:8080/company/getOneCoupon/"
     }
@@ -40,7 +41,7 @@ class DevelopmentGlobals extends Globals {
         allSystemCoupons: "http://localhost:8080/guest/allSystemCoupons",
         allCouponsByMaxPrice: "http://localhost:8080/guest/allCouponsByMaxPrice",
         allCouponsByCategory: "http://localhost:8080/guest/allCouponsByCategory",
-        register: "http://localhost:8080/guest/register", // Added register URL
+        register: "http://localhost:8080/guest/register",
     }
     public urls = {
         login: "http://localhost:8080/login",
@@ -70,8 +71,9 @@ class ProductionGlobals extends Globals {
         getCouponByCategory: "/company/allCouponsByCategory",
         getCouponByMaxPrice: "/company/allCouponsByMaxPrice",
         updateCoupon: "/company/updateCoupon",
+        updateDetails: "/company/updateDetails", // Added this line
         getAllCompanyCoupons2: "/company/allCoupons",
-        getOneCompanyCoupon: "/company/getOneCoupon/"
+        getOneCompanyCoupon: "/company/getOneCompany/"
     }
     public customer = {
         purchaseCoupon: "/customer/purchaseCoupon/",
@@ -87,12 +89,13 @@ class ProductionGlobals extends Globals {
         allSystemCoupons: "guest/allSystemCoupons",
         allCouponsByCategory: "/guest/allCouponsByCategory",
         allCouponsByMaxPrice: "guest/allCouponsByMaxPrice",
-        register: "/guest/register", // Added register URL
+        register: "/guest/register",
     }
     public urls = {
         login: "/login",
     }
 }
 
-const globals = process.env.NODE_ENV === 'production' ? new ProductionGlobals : new DevelopmentGlobals;
+const globals = process.env.NODE_ENV === 'production' ? new ProductionGlobals() : new DevelopmentGlobals();
+
 export default globals;

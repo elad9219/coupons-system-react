@@ -26,6 +26,8 @@ import GetAllCompanyCoupons2 from '../../company/getAllCompanyCoupons2/getAllCom
 import Register from "../../user/register/register";
 import Login from "../../user/login/login";
 import UpdateCoupon from "../../company/updateCoupon/updateCoupon";
+// Import the new component
+import UpdateCompanyDetails from "../../company/updateCompanyDetails/updateCompanyDetails";
 
 function MenuRouting(): JSX.Element {
     return (
@@ -42,8 +44,6 @@ function MenuRouting(): JSX.Element {
                 <Route path="admin/getAllCustomers" element= {<GetAllCustomers/>}/>
                 <Route path="admin/getCustomer" element= {<GetCustomer/>}/>
                 <Route path="admin/getOneCompany" element= {<GetOneCompany/>}/>
-                
-                {/* Fixed Paths for Update to match navigate() calls */}
                 <Route path="admin/updateCompany" element= {<UpdateCompany/>}/>
                 <Route path="admin/updateCustomer" element= {<UpdateCustomer/>}/>
 
@@ -54,10 +54,10 @@ function MenuRouting(): JSX.Element {
                 <Route path="company/getComapnyDetails" element= {<GetCompanyDetails/>}/>
                 <Route path="company/getCouponsByCategory" element= {<GetCouponsByCategory/>}/>
                 <Route path="company/getCouponsByMaxPrice" element= {<GetCouponsByMaxPrice/>}/>
-                
-                {/* Fixed Path for Update Coupon */}
                 <Route path="company/updateCoupon" element= {<UpdateCoupon/>}/>
-                <Route path="company/update" element= {<UpdateCompany/>}/> {/* Added alias for company self-update */}
+                
+                {/* Fixed Route: Points to UpdateCompanyDetails instead of UpdateCompany */}
+                <Route path="company/update" element= {<UpdateCompanyDetails/>}/> 
 
                 {/* Customer Routes */}
                 <Route path="customer/customerCoupons" element= {<GetCustomerCoupons/>}/>

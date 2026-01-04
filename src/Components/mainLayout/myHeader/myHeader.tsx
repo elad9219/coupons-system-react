@@ -26,18 +26,18 @@ function MyHeader(): JSX.Element {
     return (
         <AppBar position="sticky" color="primary" elevation={3}>
             <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-                {/* Logo with spacing */}
+                {/* Logo Section */}
                 <IconButton 
                     edge="start" 
                     color="inherit" 
                     aria-label="home" 
                     onClick={() => navigate("/")} 
-                    sx={{ mr: 3 }} // Increased margin right
                 >
                     <img src={homepage} alt="logo" style={{width: 32, height: 32, filter: 'brightness(0) invert(1)'}} />
                 </IconButton>
 
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: 1 }}>
+                {/* Brand Text - Reduced pr to 2 for a more subtle spacing */}
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: 1, pr: 2 }}>
                     אתר קופונים
                 </Typography>
 
@@ -53,7 +53,7 @@ function MyHeader(): JSX.Element {
                     {!userType ? (
                         <Button 
                             color="inherit" 
-                            startIcon={<LoginIcon sx={{ ml: 1 }}/>} // Added margin to icon
+                            startIcon={<LoginIcon sx={{ ml: 1 }}/>} 
                             onClick={login}
                             variant="outlined"
                             sx={{ borderColor: 'rgba(255,255,255,0.5)', borderRadius: 20, px: 3 }}
@@ -63,7 +63,7 @@ function MyHeader(): JSX.Element {
                     ) : (
                         <Button 
                             color="inherit" 
-                            endIcon={<LogoutIcon sx={{ mr: 1 }}/>} // Added margin to icon
+                            endIcon={<LogoutIcon sx={{ mr: 1 }}/>} 
                             onClick={logout}
                             sx={{ fontWeight: 'bold' }}
                         >

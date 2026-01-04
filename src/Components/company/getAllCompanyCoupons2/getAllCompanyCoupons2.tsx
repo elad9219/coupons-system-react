@@ -39,18 +39,19 @@ function GetAllCompanyCoupons2(): JSX.Element {
 
     return (
         <Container maxWidth="xl" sx={{ mt: 4 }} dir="rtl">
-            <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary">הקופונים שלי</Typography>
+            <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary"> הקופונים שלי </Typography>
+            
             <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
                 <Grid container spacing={4} justifyContent="center">
                     <Grid item xs={12} md={4}>
-                        <Typography variant="body2">מחיר מקסימלי: ₪{maxPrice}</Typography>
+                        <Typography variant="body2"> מחיר מקסימלי: ₪{maxPrice}</Typography>
                         <Slider value={maxPrice} min={0} max={10000} onChange={(_, v) => setMaxPrice(v as number)} valueLabelDisplay="auto" />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <FormControl fullWidth size="small">
-                            <InputLabel>קטגוריה</InputLabel>
+                            <InputLabel> קטגוריה </InputLabel>
                             <Select value={category} onChange={(e) => setCategory(e.target.value as CouponCategory)}>
-                                <MenuItem value={CouponCategory.ALL}>הכל</MenuItem>
+                                <MenuItem value={CouponCategory.ALL}> הכל </MenuItem>
                                 {Object.values(CouponCategory).filter(c => c !== "ALL").map(c => (
                                     <MenuItem key={c} value={c}>{getHebrewCategory(c)}</MenuItem>
                                 ))}
@@ -59,10 +60,17 @@ function GetAllCompanyCoupons2(): JSX.Element {
                     </Grid>
                 </Grid>
             </Paper>
+
             <Grid container spacing={3}>
                 {coupons.map(c => (
                     <Grid item key={c.id} xs={12} sm={6} md={4} lg={3}>
-                        <SingleCoupon coupon={c} updateCoupon={() => navigate("/company/update", {state:{couponId:c.id}})} onDelete={(id) => setCoupons(coupons.filter(x => x.id !== id))} isOwned={true} />
+                        <SingleCoupon 
+                            coupon={c} 
+                            // FIX: Point to correct route and pass full coupon object
+                            updateCoupon={() => navigate("/company/updateCoupon", {state: {coupon: c}})} 
+                            onDelete={(id) => setCoupons(coupons.filter(x => x.id !== id))} 
+                            isOwned={true} 
+                        />
                     </Grid>
                 ))}
             </Grid>

@@ -1,10 +1,10 @@
 import jwt_decode from 'jwt-decode';
 
 export class authState {
-    userName: string = ""; 
+    userName: string = "";
     userType: string = "";
     userToken: string = "";
-    id: number = 0; 
+    id: number = 0;
 }
 
 export enum authActionType {
@@ -54,15 +54,18 @@ export function authReducer(currentState: authState = new authState(), action: A
             try {
                 const token = action.payload.replace("Bearer ", "");
                 const decoded: any = jwt_decode(token);
-                newState.userName = decoded.sub; 
+                
+                // FIX: Load name from storage instead of showing email from token (decoded.sub)
+                newState.userName = localStorage.getItem("userName") || "";
+                
                 newState.userType = decoded.userType;
                 newState.userToken = action.payload;
-                
+
                 // Persistence: Try to get ID from localStorage if payload doesn't have it
                 const savedId = localStorage.getItem("userId");
                 if (savedId) newState.id = +savedId;
-                
-                // If the token itself has the ID (depends on your Backend JWT implementation)
+
+                // If the token itself has the ID
                 if (decoded.id) newState.id = decoded.id;
             } catch (e) {
                 console.error("Token decode failed", e);
@@ -74,22 +77,23 @@ export function authReducer(currentState: authState = new authState(), action: A
             newState.userName = "";
             newState.userType = "";
             newState.id = 0;
-            localStorage.removeItem("userId"); // Clear on logout
+            localStorage.removeItem("userId"); 
+            localStorage.removeItem("userName"); // FIX: Clear name on logout
             break;
 
         case authActionType.UpdateToken:
             newState.userToken = action.payload;
             break;
 
-        case authActionType.SetUserName: 
+        case authActionType.SetUserName:
             newState.userName = action.payload;
+            localStorage.setItem("userName", action.payload); // FIX: Save name to storage
             break;
 
-        case authActionType.SetUserId: 
+        case authActionType.SetUserId:
             newState.id = action.payload;
-            localStorage.setItem("userId", action.payload.toString()); // Save for refresh
+            localStorage.setItem("userId", action.payload.toString()); 
             break;
     }
-
     return newState;
 }

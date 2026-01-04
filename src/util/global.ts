@@ -24,7 +24,7 @@ class DevelopmentGlobals extends Globals {
         getCouponByMaxPrice: "http://localhost:8080/company/allCouponsByMaxPrice/",
         updateCoupon: "http://localhost:8080/company/updateCoupon",
         updateDetails: "http://localhost:8080/company/updateDetails",
-        getAllCompanyCoupons2: "http://localhost:8080/company/allCoupons",
+        // Removed getAllCompanyCoupons2 line
         getOneCompanyCoupon: "http://localhost:8080/company/getOneCoupon/"
     }
     public customer = {
@@ -33,7 +33,7 @@ class DevelopmentGlobals extends Globals {
         getCouponsByCategory: "http://localhost:8080/customer/customerCouponsByCategory",
         getCouponsByMaxPrice: "http://localhost:8080/customer/customerCouponsByMaxPrice",
         getCustomerDetails: "http://localhost:8080/customer/customerDetails",
-        updateDetails: "http://localhost:8080/customer/updateDetails", // Added this
+        updateDetails: "http://localhost:8080/customer/updateDetails",
     }
     public coupon = {
         allCoupons: "http://localhost:8080/allCoupons/",
@@ -73,7 +73,7 @@ class ProductionGlobals extends Globals {
         getCouponByMaxPrice: "/company/allCouponsByMaxPrice",
         updateCoupon: "/company/updateCoupon",
         updateDetails: "/company/updateDetails",
-        getAllCompanyCoupons2: "/company/allCoupons",
+        // Removed getAllCompanyCoupons2 line
         getOneCompanyCoupon: "/company/getOneCompany/"
     }
     public customer = {
@@ -82,7 +82,7 @@ class ProductionGlobals extends Globals {
         getCouponsByCategory: "/customer/customerCouponsByCategory/",
         getCouponsByMaxPrice: "/customer/customerCouponsByMaxPrice/",
         getCustomerDetails: "/customer/customerDetails",
-        updateDetails: "/customer/updateDetails", // Added this
+        updateDetails: "/customer/updateDetails",
     }
     public coupon = {
         allCoupons: "/allCoupons",

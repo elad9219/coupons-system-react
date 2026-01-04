@@ -22,11 +22,11 @@ import UpdateCompany from "../../admin/updateCompany/updateCompany";
 import Menu from '../../mainLayout/menu/menu';
 import GetCompanyDetails from "../../company/getCompanyDetails/getCompanyDetails";
 import GetCustomerDetails from "../../customer/getCustomerDetails/getCustomerDetails";
-import GetAllCompanyCoupons2 from '../../company/getAllCompanyCoupons2/getAllCompanyCoupons2';
+// Import the unified component (Removed the '2')
+import GetAllCompanyCoupons from '../../company/getAllCompanyCoupons/getAllCompanyCoupons';
 import Register from "../../user/register/register";
 import Login from "../../user/login/login";
 import UpdateCoupon from "../../company/updateCoupon/updateCoupon";
-// Import the new component
 import UpdateCompanyDetails from "../../company/updateCompanyDetails/updateCompanyDetails";
 
 function MenuRouting(): JSX.Element {
@@ -50,13 +50,14 @@ function MenuRouting(): JSX.Element {
                 {/* Company Routes */}
                 <Route path="company/addCoupon" element= {<AddCoupon/>}/>
                 <Route path="company/deleteCoupon" element= {<DeleteCoupon/>}/>
-                <Route path="company/allCoupons" element= {<GetAllCompanyCoupons2/>}/>
+                
+                {/* Pointing to the unified component */}
+                <Route path="company/allCoupons" element= {<GetAllCompanyCoupons/>}/>
+                
                 <Route path="company/getComapnyDetails" element= {<GetCompanyDetails/>}/>
                 <Route path="company/getCouponsByCategory" element= {<GetCouponsByCategory/>}/>
                 <Route path="company/getCouponsByMaxPrice" element= {<GetCouponsByMaxPrice/>}/>
                 <Route path="company/updateCoupon" element= {<UpdateCoupon/>}/>
-                
-                {/* Fixed Route: Points to UpdateCompanyDetails instead of UpdateCompany */}
                 <Route path="company/update" element= {<UpdateCompanyDetails/>}/> 
 
                 {/* Customer Routes */}

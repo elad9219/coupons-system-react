@@ -1,9 +1,9 @@
 import "./singleCoupon.css";
 import { Coupon } from '../../../modal/Coupon';
 import { useNavigate } from "react-router-dom";
-import {
-    Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-    Card, CardMedia, CardContent, Typography, CardActions, Chip, Box, IconButton
+import { 
+    Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, 
+    Card, CardMedia, CardContent, Typography, CardActions, Chip, Box, IconButton 
 } from "@mui/material";
 import { store, RootState } from "../../../redux/store";
 import { useState } from "react";
@@ -16,32 +16,34 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { getHebrewCategory } from "../../../util/categories";
 import { useSelector, useDispatch } from "react-redux";
-import { downloadSingleCustomer } from "../../../redux/customerState";
+import { couponPurchased } from "../../../redux/customerState";
 
 interface SingleCouponProps {
     coupon?: Coupon;
     updateCoupon?: () => void;
     onDelete?: (id: number) => void;
-    isOwned?: boolean; // נשמר למקרה הצורך, אבל הלוגיקה האמיתית עכשיו דרך Redux
+    isOwned?: boolean; 
 }
 
 function SingleCoupon(props: SingleCouponProps): JSX.Element {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     
-    // Dialog States
     const [openDelete, setOpenDelete] = useState(false);
     const [openPurchase, setOpenPurchase] = useState(false);
 
     const coupon = props.coupon;
     
-    // שימוש ב-Selectors כדי להאזין לשינויים בזמן אמת
+    // Selectors
     const userType = useSelector((state: RootState) => state.authState.userType);
     const userId = useSelector((state: RootState) => state.authState.id);
+    // Fetch the logged-in customer data which holds the 'coupons' array
+    const customer = useSelector((state: RootState) => state.customerState.customer[0]);
     
-    // בדיקה ריאקטיבית האם הקופון נרכש (מתעדכן אוטומטית כשהסטייט משתנה)
-    const customerCoupons = useSelector((state: RootState) => state.customerState.customer[0]?.coupons);
-    const isPurchasedByCustomer = userType === "CUSTOMER" && customerCoupons?.some(c => c.id === coupon?.id);
+    // CRITICAL FIX: Check if current coupon ID exists in the customer's purchased list
+    // This works on refresh because Layout fetches the customer data again.
+    const isPurchasedByCustomer = userType === "CUSTOMER" && 
+                                  customer?.coupons?.some(c => Number(c.id) === Number(coupon?.id));
 
     if (!coupon) return <div></div>;
 
@@ -61,11 +63,8 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
         jwtAxios.post(globals.customer.purchaseCoupon + coupon.id)
             .then(() => {
                 notify.success("נרכש בהצלחה!");
-                // עדכון הסטייט ב-Redux כדי שהכפתור יהפוך ל"נרכש" מיד
-                // אנו מורידים מחדש את פרטי הלקוח כדי לסנכרן את הקופונים
-                jwtAxios.get(globals.customer.getCustomerDetails).then(res => {
-                    dispatch(downloadSingleCustomer([res.data]));
-                });
+                // Immediate UI update via Redux
+                dispatch(couponPurchased(coupon));
                 setOpenPurchase(false);
             })
             .catch(err => {
@@ -93,10 +92,10 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
     };
 
     return (
-        <Card sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
+        <Card sx={{ 
+            height: '100%', 
+            display: 'flex', 
+            flexDirection: 'column', 
             position: 'relative',
             borderRadius: 3,
             border: isExpired ? '1px solid #ffcdd2' : 'none',
@@ -104,24 +103,23 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
             '&:hover': { transform: 'scale(1.02)' }
         }} dir="rtl">
 
-            {/* Expired Badge */}
             {isExpired && (
-                <Chip
-                    label="פג תוקף"
-                    color="error"
-                    size="small"
-                    sx={{ position: 'absolute', top: 10, right: 10, zIndex: 2, fontWeight: 'bold', boxShadow: 2 }}
+                <Chip 
+                    label="פג תוקף" 
+                    color="error" 
+                    size="small" 
+                    sx={{ position: 'absolute', top: 10, right: 10, zIndex: 2, fontWeight: 'bold', boxShadow: 2 }} 
                 />
             )}
 
-            <Box sx={{
+            <Box sx={{ 
                 display: 'flex', flexDirection: 'column', height: '100%',
-                opacity: isExpired ? 0.6 : 1,
+                opacity: isExpired ? 0.6 : 1, 
                 filter: isExpired ? 'grayscale(0.8)' : 'none'
             }}>
                 <CardMedia
                     component="img"
-                    height="160"
+                    height="180"
                     image={coupon.image || "https://via.placeholder.com/200"}
                     alt={coupon.title}
                 />
@@ -130,7 +128,7 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                     <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem', lineHeight: 1.2, mb: 1 }}>
                         {coupon.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: '40px' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: '40px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                         {coupon.description}
                     </Typography>
                     
@@ -157,8 +155,9 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                                     variant="contained" 
                                     fullWidth 
                                     onClick={confirmPurchase} 
-                                    disabled={!!isPurchasedByCustomer} // הופך ל-True מיד כשהסטייט מתעדכן
+                                    disabled={!!isPurchasedByCustomer} 
                                     color={isPurchasedByCustomer ? "success" : "primary"}
+                                    sx={{ fontWeight: 'bold' }}
                                 >
                                     {isPurchasedByCustomer ? "נרכש" : "רכישה"}
                                 </Button>
@@ -170,7 +169,7 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                 </CardActions>
             </Box>
 
-            {/* דיאלוג מחיקה */}
+            {/* Delete Dialog */}
             <Dialog open={openDelete} onClose={() => setOpenDelete(false)} dir="rtl">
                 <DialogTitle>מחיקת קופון</DialogTitle>
                 <DialogContent><DialogContentText>למחוק את "{coupon.title}"?</DialogContentText></DialogContent>
@@ -180,15 +179,15 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                 </DialogActions>
             </Dialog>
 
-            {/* דיאלוג אישור רכישה - חדש! */}
+            {/* Purchase Dialog */}
             <Dialog open={openPurchase} onClose={() => setOpenPurchase(false)} dir="rtl">
                 <DialogTitle sx={{fontWeight: 'bold'}}>אישור רכישה</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        האם אתה בטוח שברצונך לרכוש את הקופון <b>{coupon.title}</b> במחיר <b>₪{coupon.price}</b>?
+                        האם לרכוש את הקופון <b>{coupon.title}</b> במחיר <b>₪{coupon.price}</b>?
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions sx={{p: 2}}>
+                <DialogActions sx={{p: 2, gap: 2}}>
                     <Button onClick={() => setOpenPurchase(false)} variant="outlined" color="inherit">ביטול</Button>
                     <Button onClick={performPurchase} variant="contained" color="primary">אישור ורכישה</Button>
                 </DialogActions>

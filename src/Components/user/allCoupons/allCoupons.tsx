@@ -18,10 +18,10 @@ function AllCoupons(): JSX.Element {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Force fetch customer details if logged in as customer to know what is purchased
+        // Force fetch customer details to ensure "purchased" state is known
         if (store.getState().authState.userType === "CUSTOMER") {
-             jwtAxios.get(globals.customer.getAllCoupons)
-                .then(res => store.dispatch({ type: "DOWNLOAD_CUSTOMERS", payload: [{ coupons: res.data }] }))
+            jwtAxios.get(globals.customer.getAllCoupons)
+                .then(res => store.dispatch({ type: "DOWNLOAD_SINGLE_CUSTOMER", payload: [{ coupons: res.data }] }))
                 .catch(() => {});
         }
         fetchCoupons();
@@ -38,7 +38,7 @@ function AllCoupons(): JSX.Element {
             const filtered = response.data.filter(c => c.price <= maxPrice);
             setCoupons(filtered);
         } catch (error) {
-            setCoupons([]); 
+            setCoupons([]);
         } finally {
             setLoading(false);
         }
@@ -57,25 +57,32 @@ function AllCoupons(): JSX.Element {
             <Typography variant="h4" gutterBottom align="center" fontWeight="bold" color="primary">
                 כל הקופונים במערכת
             </Typography>
-            
-            {/* Filters - Always Visible */}
+
             <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-                <Grid container spacing={4} alignItems="center" justifyContent="center">
-                    <Grid item xs={12} md={4}>
-                        <Typography gutterBottom variant="body2">סינון לפי מחיר: ₪{displayPrice}</Typography>
-                        <Slider
-                            value={displayPrice}
-                            min={0}
-                            max={10000}
-                            step={50}
-                            onChange={handleSliderChange}
-                            onChangeCommitted={handleSliderCommit}
-                            valueLabelDisplay="auto"
-                            sx={{direction: 'ltr'}} 
-                        />
+                <Grid container spacing={6} alignItems="center" justifyContent="center">
+                    
+                    {/* Slider Section - Fixed Max Value to 10000 */}
+                    <Grid item xs={12} md={5}>
+                        <Typography gutterBottom variant="body1" fontWeight="500">
+                            סינון לפי מחיר: <span style={{color: '#1976d2'}}>₪{displayPrice}</span>
+                        </Typography>
+                        <Box sx={{ px: 2, pt: 1 }}> 
+                            <Slider
+                                value={displayPrice}
+                                min={0}
+                                max={10000} // Fixed: Restored to 10,000 as requested
+                                step={100}
+                                onChange={handleSliderChange}
+                                onChangeCommitted={handleSliderCommit}
+                                valueLabelDisplay="auto"
+                                sx={{direction: 'ltr', height: 8}}
+                            />
+                        </Box>
                     </Grid>
+
+                    {/* Category Section */}
                     <Grid item xs={12} md={4}>
-                        <FormControl fullWidth size="small">
+                        <FormControl fullWidth size="medium">
                             <InputLabel>קטגוריה</InputLabel>
                             <Select
                                 value={category}
@@ -103,14 +110,14 @@ function AllCoupons(): JSX.Element {
                         <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
                             <SingleCoupon 
                                 coupon={item} 
-                                updateCoupon={() => {}} 
-                                isOwned={false}
+                                updateCoupon={() => {}}
+                                isOwned={false} 
                             />
                         </Grid>
                     ))}
                 </Grid>
             )}
-            
+
             {!loading && coupons.length === 0 && (
                 <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
                     לא נמצאו קופונים התואמים את הסינון.

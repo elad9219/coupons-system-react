@@ -5,7 +5,11 @@ import notify from '../../../util/notify';
 import { store } from "../../../redux/store";
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Card, CardContent, Typography, Box, TextField, InputAdornment, IconButton, CardActions } from "@mui/material";
+import { 
+    Button, Dialog, DialogActions, DialogContent, DialogContentText, 
+    DialogTitle, Card, CardContent, Typography, Box, TextField, 
+    InputAdornment, IconButton, CardActions 
+} from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ListAltIcon from '@mui/icons-material/ListAlt';
@@ -30,10 +34,13 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
         if (!props.company) return;
         jwtAxios.delete(globals.admin.deleteCompany + props.company.id)
             .then(() => {
-                notify.success("החברה נמחקה");
+                notify.success("החברה נמחקה בהצלחה");
                 if (props.onDelete) props.onDelete(props.company!.id);
             })
-            .catch(() => notify.error("שגיאה במחיקה (אולי יש קופונים מקושרים?)"));
+            .catch(err => {
+                const msg = err.response?.data?.message || "שגיאה במחיקה";
+                notify.error(msg);
+            });
     };
 
     return (
@@ -81,16 +88,22 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
                     </Box>
                 )}
                 {userType === "COMPANY" && (
-                        <Button variant="outlined" fullWidth onClick={props.updateCompany}>עדכון פרטים</Button>
+                    <Button variant="outlined" fullWidth onClick={props.updateCompany}>עדכון פרטים</Button>
                 )}
             </CardActions>
 
             <Dialog open={open} onClose={() => setOpen(false)} dir="rtl">
-                <DialogTitle>מחיקת חברה</DialogTitle>
-                <DialogContent><DialogContentText>למחוק את {props.company.name}?</DialogContentText></DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpen(false)}>ביטול</Button>
-                    <Button onClick={() => { removeCompany(); setOpen(false); }} color="error">מחק</Button>
+                <DialogTitle sx={{fontWeight: 'bold', color: 'error.main'}}>מחיקת חברה - אזהרה</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        האם אתה בטוח שברצונך למחוק את חברת <b>{props.company.name}</b>?
+                        <br/><br/>
+                        <span style={{color: 'red', fontWeight: 'bold'}}>שים לב:</span> פעולה זו תמחק לצמיתות את החברה ואת <b>כל הקופונים</b> שיצרה, גם אם נרכשו על ידי לקוחות.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{p: 3, gap: 3}}> {/* Updated padding and gap for better spacing */}
+                    <Button onClick={() => setOpen(false)} variant="outlined" color="inherit">ביטול</Button>
+                    <Button onClick={() => { removeCompany(); setOpen(false); }} color="error" variant="contained">אשר ומחק</Button>
                 </DialogActions>
             </Dialog>
         </Card>

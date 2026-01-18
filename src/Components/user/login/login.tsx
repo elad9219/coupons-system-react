@@ -8,7 +8,7 @@ import jwtAxios from '../../../util/JWTaxios';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserId, setUserName, userLogin } from "../../../redux/authState";
-import { store } from "../../../redux/store";
+import { store, RootState } from "../../../redux/store";
 import { downloadSingleCompany } from "../../../redux/companyState";
 import { downloadSingleCustomer } from "../../../redux/customerState";
 import { Company } from "../../../modal/Company";
@@ -45,7 +45,7 @@ function Login(): JSX.Element {
                             dispatch(downloadSingleCompany([res.data]));
                             dispatch(setUserName(res.data.name));
                             dispatch(setUserId(res.data.id || 0));
-                            notify.success(`ברוך הבא, חברת ${res.data.name}`);
+                            notify.success(`Welcome, ${res.data.name} company`);
                             navigate("/company/allCoupons");
                         });
                 }
@@ -56,13 +56,13 @@ function Login(): JSX.Element {
                             dispatch(downloadSingleCustomer([res.data]));
                             dispatch(setUserName(res.data.first_name));
                             dispatch(setUserId(res.data.id || 0));
-                            notify.success(`ברוך הבא, ${res.data.first_name}`);
+                            notify.success(`Welcome, ${res.data.first_name}`);
                             navigate("/");
                         });
                 }
             })
             .catch(err => {
-                notify.error("פרטי התחברות שגויים");
+                notify.error("Invalid credentials");
             });
     };
 
@@ -75,12 +75,10 @@ function Login(): JSX.Element {
                 setValue("password", "admin");
                 break;
             case "COMPANY":
-                // Updated to match the Backend DataSeeding logic (sony@contact.com)
                 setValue("email", "sony@contact.com"); 
                 setValue("password", "1234");
                 break;
             case "CUSTOMER":
-                // Updated to match the Backend DataSeeding logic (kobi@gmail.com)
                 setValue("email", "kobi@gmail.com");
                 setValue("password", "1234");
                 break;
@@ -94,7 +92,7 @@ function Login(): JSX.Element {
                     כניסה למערכת
                 </Typography>
 
-                {/* Demo Area - Prominent and Clear */}
+                {/* Demo Area - Quick Login Buttons */}
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#e3f2fd', borderRadius: 2, border: '1px solid #90caf9' }}>
                     <Typography variant="subtitle2" color="primary" align="center" sx={{ mb: 1, fontWeight: 'bold' }}>
                         כניסה מהירה להדגמה
@@ -105,7 +103,8 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="error"
                                 size="small"
-                                startIcon={<AdminPanelSettingsIcon />}
+                                // Added marginLeft to the icon for spacing in RTL
+                                startIcon={<AdminPanelSettingsIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("ADMIN")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
                             >
@@ -117,7 +116,8 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="info"
                                 size="small"
-                                startIcon={<BusinessIcon />}
+                                // Added marginLeft to the icon for spacing in RTL
+                                startIcon={<BusinessIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("COMPANY")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
                             >
@@ -129,7 +129,8 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="success"
                                 size="small"
-                                startIcon={<PersonIcon />}
+                                // Added marginLeft to the icon for spacing in RTL
+                                startIcon={<PersonIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("CUSTOMER")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
                             >
@@ -175,7 +176,6 @@ function Login(): JSX.Element {
                         התחבר
                     </Button>
 
-                    {/* Registration button restored */}
                     <Box sx={{ mt: 2, textAlign: 'center' }}>
                         <Button
                             onClick={() => navigate("/register")}

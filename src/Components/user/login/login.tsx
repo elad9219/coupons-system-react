@@ -66,7 +66,7 @@ function Login(): JSX.Element {
             });
     };
 
-    // פונקציית עזר למילוי מהיר
+    // Helper function to fill demo credentials
     const fillDemoCredentials = (type: string) => {
         setUserType(type);
         switch (type) {
@@ -75,10 +75,12 @@ function Login(): JSX.Element {
                 setValue("password", "admin");
                 break;
             case "COMPANY":
-                setValue("email", "sony@sony.com");
+                // Updated to match the Backend DataSeeding logic (sony@contact.com)
+                setValue("email", "sony@contact.com"); 
                 setValue("password", "1234");
                 break;
             case "CUSTOMER":
+                // Updated to match the Backend DataSeeding logic (kobi@gmail.com)
                 setValue("email", "kobi@gmail.com");
                 setValue("password", "1234");
                 break;
@@ -92,17 +94,17 @@ function Login(): JSX.Element {
                     כניסה למערכת
                 </Typography>
 
-                {/* אזור הדמו - בולט וברור */}
+                {/* Demo Area - Prominent and Clear */}
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#e3f2fd', borderRadius: 2, border: '1px solid #90caf9' }}>
                     <Typography variant="subtitle2" color="primary" align="center" sx={{ mb: 1, fontWeight: 'bold' }}>
                         כניסה מהירה להדגמה
                     </Typography>
                     <Grid container spacing={1} justifyContent="center">
                         <Grid item>
-                            <Button 
-                                variant="outlined" 
-                                color="error" 
-                                size="small" 
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
                                 startIcon={<AdminPanelSettingsIcon />}
                                 onClick={() => fillDemoCredentials("ADMIN")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
@@ -111,10 +113,10 @@ function Login(): JSX.Element {
                             </Button>
                         </Grid>
                         <Grid item>
-                            <Button 
-                                variant="outlined" 
-                                color="info" 
-                                size="small" 
+                            <Button
+                                variant="outlined"
+                                color="info"
+                                size="small"
                                 startIcon={<BusinessIcon />}
                                 onClick={() => fillDemoCredentials("COMPANY")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
@@ -123,10 +125,10 @@ function Login(): JSX.Element {
                             </Button>
                         </Grid>
                         <Grid item>
-                            <Button 
-                                variant="outlined" 
-                                color="success" 
-                                size="small" 
+                            <Button
+                                variant="outlined"
+                                color="success"
+                                size="small"
                                 startIcon={<PersonIcon />}
                                 onClick={() => fillDemoCredentials("CUSTOMER")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
@@ -138,29 +140,29 @@ function Login(): JSX.Element {
                 </Box>
 
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <form onSubmit={handleSubmit(send)}>
-                    <TextField 
-                        label="מייל" 
-                        fullWidth 
-                        margin="normal" 
-                        {...register("email", { required: true })} 
+                    <TextField
+                        label="מייל"
+                        fullWidth
+                        margin="normal"
+                        {...register("email", { required: true })}
                         InputLabelProps={{ shrink: true }}
                     />
-                    <TextField 
-                        label="סיסמה" 
-                        type="password" 
-                        fullWidth 
-                        margin="normal" 
-                        {...register("password", { required: true })} 
+                    <TextField
+                        label="סיסמה"
+                        type="password"
+                        fullWidth
+                        margin="normal"
+                        {...register("password", { required: true })}
                         InputLabelProps={{ shrink: true }}
                     />
-                    
+
                     <FormControl fullWidth margin="normal">
                         <InputLabel>סוג משתמש</InputLabel>
-                        <Select 
-                            value={userType} 
-                            onChange={(e) => setUserType(e.target.value)} 
+                        <Select
+                            value={userType}
+                            onChange={(e) => setUserType(e.target.value)}
                             label="סוג משתמש"
                         >
                             <MenuItem value="ADMIN">מנהל מערכת</MenuItem>
@@ -173,11 +175,11 @@ function Login(): JSX.Element {
                         התחבר
                     </Button>
 
-                    {/* כפתור הרשמה שהוחזר */}
+                    {/* Registration button restored */}
                     <Box sx={{ mt: 2, textAlign: 'center' }}>
-                        <Button 
-                            onClick={() => navigate("/register")} 
-                            color="secondary" 
+                        <Button
+                            onClick={() => navigate("/register")}
+                            color="secondary"
                             sx={{ textTransform: 'none' }}
                         >
                             אין לך חשבון? לחץ כאן להרשמה

@@ -1,6 +1,6 @@
 import "./getAllCompanyCoupons.css";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Coupon } from "../../../modal/Coupon";
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
@@ -10,50 +10,69 @@ import { FormControl, InputLabel, Select, MenuItem, Grid, Typography, Paper, Con
 import { CouponCategory } from "../../../modal/CouponCategory";
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import { getHebrewCategory } from "../../../util/categories";
+import { store } from "../../../redux/store";
 
 function GetAllCompanyCoupons(): JSX.Element {
     const navigate = useNavigate();
+    const location = useLocation();
     const [coupons, setCoupons] = useState<Coupon[]>([]);
-    
-    // הפרדה בין מחיר לתצוגה (מהיר) למחיר לוגיקה (בסיום גרירה)
+
+    // Separate display price (instant) from logic price (committed)
     const [displayPrice, setDisplayPrice] = useState<number>(10000);
     const [maxPrice, setMaxPrice] = useState<number>(10000);
-    
+
     const [category, setCategory] = useState<CouponCategory>(CouponCategory.ALL);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getCoupons();
-    }, [maxPrice, category]); // מגיב רק כשהמחיר הסופי משתנה או הקטגוריה
+    }, [maxPrice, category]); 
 
     const getCoupons = async () => {
         setLoading(true);
         try {
-            // בחירת הכתובת הנכונה לפי הקטגוריה
-            let url = (category === CouponCategory.ALL) 
-                ? globals.company.getAllCoupons 
-                : `${globals.company.getCouponByCategory}/${category}`;
-            
-            const res = await jwtAxios.get<Coupon[]>(url);
-            
-            // סינון קליאנט-סייד לפי המחיר שנבחר
-            const filtered = res.data.filter(c => c.price <= maxPrice);
-            setCoupons(filtered);
+            const userType = store.getState().authState.userType;
+            const companyIdFromState = (location.state as any)?.companyId;
+
+            // SCENARIO A: ADMIN VIEWING A SPECIFIC COMPANY'S COUPONS
+            if (userType === "ADMIN" && companyIdFromState) {
+                // Admin fetches the specific company object which contains the coupons list
+                const res = await jwtAxios.get(globals.admin.getOneCompany + companyIdFromState);
+                const companyCoupons: Coupon[] = res.data.coupons || [];
+                
+                // Since getOneCompany returns all coupons, we filter them client-side
+                let filtered = companyCoupons;
+                
+                if (category !== CouponCategory.ALL) {
+                    filtered = filtered.filter(c => c.category === category);
+                }
+                
+                filtered = filtered.filter(c => c.price <= maxPrice);
+                setCoupons(filtered);
+            } 
+            // SCENARIO B: COMPANY VIEWING ITS OWN COUPONS (Original Logic)
+            else {
+                let url = (category === CouponCategory.ALL)
+                    ? globals.company.getAllCoupons
+                    : `${globals.company.getCouponByCategory}/${category}`;
+
+                const res = await jwtAxios.get<Coupon[]>(url);
+
+                // Client-side filtering for price
+                const filtered = res.data.filter(c => c.price <= maxPrice);
+                setCoupons(filtered);
+            }
         } catch (err) {
-            // אם אין קופונים או שיש שגיאה, נאפס את המערך
             setCoupons([]);
         } finally {
-            // סיום טעינה בכל מקרה (הצלחה או כישלון) כדי להעלים את הספינר
             setLoading(false);
         }
     };
 
-    // פונקציה לטיפול בגרירת הסליידר (רק ויזואלי)
     const handleSliderChange = (event: Event, newValue: number | number[]) => {
         setDisplayPrice(newValue as number);
     };
 
-    // פונקציה לטיפול בסיום הגרירה (מפעיל את הלוגיקה)
     const handleSliderCommit = (event: Event | React.SyntheticEvent, newValue: number | number[]) => {
         setMaxPrice(newValue as number);
     };
@@ -61,32 +80,32 @@ function GetAllCompanyCoupons(): JSX.Element {
     return (
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }} dir="rtl">
             <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary">
-                הקופונים שלי
+                {store.getState().authState.userType === "ADMIN" ? "קופונים של החברה" : "הקופונים שלי"}
             </Typography>
-            
-            {/* אזור הסינון - נשאר קבוע תמיד */}
+
+            {/* Filtering Area */}
             <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
                 <Grid container spacing={4} justifyContent="center" alignItems="center">
                     <Grid item xs={12} md={4}>
                         <Typography variant="body2" gutterBottom>
                             מחיר מקסימלי: ₪{displayPrice}
                         </Typography>
-                        <Slider 
-                            value={displayPrice} 
-                            min={0} 
-                            max={10000} 
+                        <Slider
+                            value={displayPrice}
+                            min={0}
+                            max={10000}
                             step={50}
-                            onChange={handleSliderChange} // עדכון בזמן אמת של המספר
-                            onChangeCommitted={handleSliderCommit} // עדכון הסינון רק בעזיבת העכבר
+                            onChange={handleSliderChange}
+                            onChangeCommitted={handleSliderCommit}
                             valueLabelDisplay="auto"
-                            sx={{direction: 'ltr'}} // כדי שהסליידר יעבוד משמאל לימין כמו שצריך
+                            sx={{direction: 'ltr'}}
                         />
                     </Grid>
                     <Grid item xs={12} md={4}>
                         <FormControl fullWidth size="small">
                             <InputLabel>קטגוריה</InputLabel>
-                            <Select 
-                                value={category} 
+                            <Select
+                                value={category}
                                 label="קטגוריה"
                                 onChange={(e) => setCategory(e.target.value as CouponCategory)}
                             >
@@ -100,7 +119,7 @@ function GetAllCompanyCoupons(): JSX.Element {
                 </Grid>
             </Paper>
 
-            {/* אזור התוכן - כאן מופיע הספינר או הקופונים */}
+            {/* Content Area */}
             <Box sx={{ minHeight: '300px' }}>
                 {loading ? (
                     <LoadingSpinner />
@@ -112,10 +131,12 @@ function GetAllCompanyCoupons(): JSX.Element {
                     <Grid container spacing={3}>
                         {coupons.map(c => (
                             <Grid item key={c.id} xs={12} sm={6} md={4} lg={3}>
-                                <SingleCoupon 
-                                    coupon={c} 
-                                    updateCoupon={() => navigate("/company/updateCoupon", {state: {coupon: c}})} 
-                                    onDelete={(id) => setCoupons(coupons.filter(x => x.id !== id))} 
+                                <SingleCoupon
+                                    coupon={c}
+                                    // Update is only allowed for the Company itself, usually logic inside SingleCoupon handles visibility
+                                    updateCoupon={() => navigate("/company/updateCoupon", {state: {coupon: c}})}
+                                    onDelete={(id) => setCoupons(coupons.filter(x => x.id !== id))}
+                                    // If Admin is viewing, it's not "Owned" in the sense of My Coupons for purchase, but for management
                                     isOwned={true} 
                                 />
                             </Grid>

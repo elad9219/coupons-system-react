@@ -1,6 +1,6 @@
 import { Customer } from "../../../modal/Customer";
 import jwtAxios from "../../../util/JWTaxios";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Card, CardContent, Typography, Box, IconButton, InputAdornment, TextField, CardActions } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Card, CardContent, Typography, Box, IconButton, InputAdornment, TextField, CardActions, Tooltip } from "@mui/material";
 import globals from "../../../util/global";
 import notify from '../../../util/notify';
 import { store } from "../../../redux/store";
@@ -42,7 +42,7 @@ function SingleCustomer(props: SingleCustomerProps): JSX.Element {
                 <Typography variant="h6" component="div" gutterBottom fontWeight="bold" color="primary">
                     {props.customer.first_name} {props.customer.last_name}
                 </Typography>
-                
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {userType === "ADMIN" && (
                         <Typography color="text.secondary" variant="caption">ID: {props.customer.id}</Typography>
@@ -74,14 +74,28 @@ function SingleCustomer(props: SingleCustomerProps): JSX.Element {
 
             <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between' }}>
                 {userType === "ADMIN" && (
-                    <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="outlined" onClick={() => navigate("/customer/customerCoupons", { state: { customerId: props.customer?.id } })}><ListAltIcon/></Button>
-                        <Button size="small" variant="contained" color="warning" onClick={props.updateCustomer} fullWidth startIcon={<EditIcon/>}>ערוך</Button>
-                        <IconButton size="small" color="error" onClick={() => setOpen(true)}><DeleteIcon/></IconButton>
+                    <Box sx={{ width: '100%', display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {/* Tooltip added: Shows "רשימת קופונים" only on hover */}
+                        <Tooltip title="רשימת קופונים" arrow placement="top">
+                            <IconButton 
+                                color="info" 
+                                onClick={() => navigate("/customer/customerCoupons", { state: { customerId: props.customer?.id } })}
+                            >
+                                <ListAltIcon />
+                            </IconButton>
+                        </Tooltip>
+
+                        <Button size="small" variant="contained" color="warning" onClick={props.updateCustomer} fullWidth startIcon={<EditIcon/>}>
+                            ערוך
+                        </Button>
+                        
+                        <IconButton size="small" color="error" onClick={() => setOpen(true)}>
+                            <DeleteIcon/>
+                        </IconButton>
                     </Box>
                 )}
                 {userType === "CUSTOMER" && (
-                        <Button variant="outlined" fullWidth onClick={props.updateCustomer}>עדכון פרטים</Button>
+                    <Button variant="outlined" fullWidth onClick={props.updateCustomer}>עדכון פרטים</Button>
                 )}
             </CardActions>
 

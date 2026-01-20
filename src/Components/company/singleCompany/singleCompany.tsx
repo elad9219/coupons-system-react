@@ -5,10 +5,10 @@ import notify from '../../../util/notify';
 import { store } from "../../../redux/store";
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { 
-    Button, Dialog, DialogActions, DialogContent, DialogContentText, 
-    DialogTitle, Card, CardContent, Typography, Box, TextField, 
-    InputAdornment, IconButton, CardActions 
+import {
+    Button, Dialog, DialogActions, DialogContent, DialogContentText,
+    DialogTitle, Card, CardContent, Typography, Box, TextField,
+    InputAdornment, IconButton, CardActions, Tooltip
 } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -81,10 +81,24 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
 
             <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between' }}>
                 {userType === "ADMIN" && (
-                    <Box sx={{ width: '100%', display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="outlined" onClick={() => navigate("/company/allCoupons", { state: { companyId: props.company?.id } })}><ListAltIcon/></Button>
-                        <Button size="small" variant="contained" color="warning" onClick={props.updateCompany} fullWidth startIcon={<EditIcon/>}>ערוך</Button>
-                        <IconButton size="small" color="error" onClick={() => setOpen(true)}><DeleteIcon/></IconButton>
+                    <Box sx={{ width: '100%', display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {/* Tooltip added: Shows text only on hover, icon remains original */}
+                        <Tooltip title="רשימת קופונים" arrow placement="top">
+                            <IconButton 
+                                color="info" 
+                                onClick={() => navigate("/company/allCoupons", { state: { companyId: props.company?.id } })}
+                            >
+                                <ListAltIcon />
+                            </IconButton>
+                        </Tooltip>
+                        
+                        <Button size="small" variant="contained" color="warning" onClick={props.updateCompany} fullWidth startIcon={<EditIcon/>}>
+                            ערוך
+                        </Button>
+                        
+                        <IconButton size="small" color="error" onClick={() => setOpen(true)}>
+                            <DeleteIcon/>
+                        </IconButton>
                     </Box>
                 )}
                 {userType === "COMPANY" && (
@@ -101,7 +115,7 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
                         <span style={{color: 'red', fontWeight: 'bold'}}>שים לב:</span> פעולה זו תמחק לצמיתות את החברה ואת <b>כל הקופונים</b> שיצרה, גם אם נרכשו על ידי לקוחות.
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions sx={{p: 3, gap: 3}}> {/* Updated padding and gap for better spacing */}
+                <DialogActions sx={{p: 3, gap: 3}}>
                     <Button onClick={() => setOpen(false)} variant="outlined" color="inherit">ביטול</Button>
                     <Button onClick={() => { removeCompany(); setOpen(false); }} color="error" variant="contained">אשר ומחק</Button>
                 </DialogActions>

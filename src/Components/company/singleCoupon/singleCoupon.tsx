@@ -37,17 +37,21 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
     // Selectors
     const userType = useSelector((state: RootState) => state.authState.userType);
     const userId = useSelector((state: RootState) => state.authState.id);
-    // Fetch the logged-in customer data which holds the 'coupons' array
     const customer = useSelector((state: RootState) => state.customerState.customer[0]);
     
-    // CRITICAL FIX: Check if current coupon ID exists in the customer's purchased list
-    // This works on refresh because Layout fetches the customer data again.
-    const isPurchasedByCustomer = userType === "CUSTOMER" && 
-                                  customer?.coupons?.some(c => Number(c.id) === Number(coupon?.id));
-
+    // Logic checks
     if (!coupon) return <div></div>;
 
-    const isExpired = coupon.expired;
+    // Fixed: Checking if purchased via Prop or Redux state
+    const isPurchasedByCustomer = props.isOwned || (userType === "CUSTOMER" && 
+                                  customer?.coupons?.some(c => Number(c.id) === Number(coupon?.id)));
+
+    // Fixed: Calculating expiration based on end_date
+    const isExpired = new Date(coupon.end_date) < new Date();
+    
+    // New: Checking if out of stock
+    const isOutOfStock = coupon.amount <= 0;
+
     const isCompanyOwner = userType === "COMPANY" && coupon.companyId === userId;
 
     const confirmPurchase = () => {
@@ -63,12 +67,12 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
         jwtAxios.post(globals.customer.purchaseCoupon + coupon.id)
             .then(() => {
                 notify.success("נרכש בהצלחה!");
-                // Immediate UI update via Redux
                 dispatch(couponPurchased(coupon));
                 setOpenPurchase(false);
             })
             .catch(err => {
-                notify.error(err.response?.data || "שגיאה ברכישה");
+                const errorMsg = err.response?.data?.message || err.response?.data || "שגיאה ברכישה";
+                notify.error(errorMsg);
                 setOpenPurchase(false);
             });
     };
@@ -155,11 +159,12 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                                     variant="contained" 
                                     fullWidth 
                                     onClick={confirmPurchase} 
-                                    disabled={!!isPurchasedByCustomer} 
+                                    // Disabled if already purchased OR out of stock
+                                    disabled={!!isPurchasedByCustomer || isOutOfStock} 
                                     color={isPurchasedByCustomer ? "success" : "primary"}
                                     sx={{ fontWeight: 'bold' }}
                                 >
-                                    {isPurchasedByCustomer ? "נרכש" : "רכישה"}
+                                    {isPurchasedByCustomer ? "נרכש" : isOutOfStock ? "אזל המלאי" : "רכישה"}
                                 </Button>
                             )}
                         </>
@@ -187,7 +192,7 @@ function SingleCoupon(props: SingleCouponProps): JSX.Element {
                         האם לרכוש את הקופון <b>{coupon.title}</b> במחיר <b>₪{coupon.price}</b>?
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions sx={{p: 2, gap: 2}}>
+                <DialogActions>
                     <Button onClick={() => setOpenPurchase(false)} variant="outlined" color="inherit">ביטול</Button>
                     <Button onClick={performPurchase} variant="contained" color="primary">אישור ורכישה</Button>
                 </DialogActions>

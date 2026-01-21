@@ -73,7 +73,6 @@ class ProductionGlobals extends Globals {
         getCouponByMaxPrice: "/company/allCouponsByMaxPrice",
         updateCoupon: "/company/updateCoupon",
         updateDetails: "/company/updateDetails",
-        // Removed getAllCompanyCoupons2 line
         getOneCompanyCoupon: "/company/getOneCompany/"
     }
     public customer = {

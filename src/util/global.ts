@@ -2,98 +2,103 @@ class Globals {
 }
 
 class DevelopmentGlobals extends Globals {
+    private static host = window.location.hostname;
+    private static baseUrl = `http://${DevelopmentGlobals.host}:8080`;
+
     public admin = {
-        adminMenu: "http://localhost:8080/api/adminMenu",
-        addCompany: "http://localhost:8080/api/admin/addCompany",
-        addCustomer: "http://localhost:8080/api/admin/addCustomer",
-        getAllCompanies: "http://localhost:8080/api/admin/getAllCompanies",
-        getAllCustomers: "http://localhost:8080/api/admin/getAllCustomers",
-        getOneCompany: "http://localhost:8080/api/admin/getOneCompany/",
-        getOneCustomer: "http://localhost:8080/api/admin/getOneCustomer/",
-        updateCompany: "http://localhost:8080/api/admin/updateCompany/",
-        updateCustomer: "http://localhost:8080/api/admin/updateCustomer",
-        deleteCompany: "http://localhost:8080/api/admin/deleteCompany/",
-        deleteCustomer: "http://localhost:8080/api/admin/deleteCustomer/",
+        adminMenu: `${DevelopmentGlobals.baseUrl}/api/adminMenu`,
+        addCompany: `${DevelopmentGlobals.baseUrl}/api/admin/addCompany`,
+        addCustomer: `${DevelopmentGlobals.baseUrl}/api/admin/addCustomer`,
+        getAllCompanies: `${DevelopmentGlobals.baseUrl}/api/admin/getAllCompanies`,
+        getAllCustomers: `${DevelopmentGlobals.baseUrl}/api/admin/getAllCustomers`,
+        getOneCompany: `${DevelopmentGlobals.baseUrl}/api/admin/getOneCompany/`,
+        getOneCustomer: `${DevelopmentGlobals.baseUrl}/api/admin/getOneCustomer/`,
+        updateCompany: `${DevelopmentGlobals.baseUrl}/api/admin/updateCompany/`,
+        updateCustomer: `${DevelopmentGlobals.baseUrl}/api/admin/updateCustomer`,
+        deleteCompany: `${DevelopmentGlobals.baseUrl}/api/admin/deleteCompany/`,
+        deleteCustomer: `${DevelopmentGlobals.baseUrl}/api/admin/deleteCustomer/`,
     }
     public company = {
-        addCoupon: "http://localhost:8080/api/company/addCoupon",
-        deleteCoupon: "http://localhost:8080/api/company/deleteCoupon/",
-        getAllCoupons: "http://localhost:8080/api/company/allCoupons",
-        getCompanyDetails: "http://localhost:8080/api/company/companyDetails/",
-        getCouponByCategory: "http://localhost:8080/api/company/allCouponsByCategory/",
-        getCouponByMaxPrice: "http://localhost:8080/api/company/allCouponsByMaxPrice/",
-        updateCoupon: "http://localhost:8080/api/company/updateCoupon",
-        updateDetails: "http://localhost:8080/api/company/updateDetails",
-        getOneCompanyCoupon: "http://localhost:8080/api/company/getOneCompany/"
+        addCoupon: `${DevelopmentGlobals.baseUrl}/api/company/addCoupon`,
+        deleteCoupon: `${DevelopmentGlobals.baseUrl}/api/company/deleteCoupon/`,
+        getAllCoupons: `${DevelopmentGlobals.baseUrl}/api/company/allCoupons`,
+        getCompanyDetails: `${DevelopmentGlobals.baseUrl}/api/company/companyDetails/`,
+        getCouponByCategory: `${DevelopmentGlobals.baseUrl}/api/company/allCouponsByCategory/`,
+        getCouponByMaxPrice: `${DevelopmentGlobals.baseUrl}/api/company/allCouponsByMaxPrice/`,
+        updateCoupon: `${DevelopmentGlobals.baseUrl}/api/company/updateCoupon`,
+        updateDetails: `${DevelopmentGlobals.baseUrl}/api/company/updateDetails`,
+        getOneCompanyCoupon: `${DevelopmentGlobals.baseUrl}/api/company/getOneCompany/`
     }
     public customer = {
-        purchaseCoupon: "http://localhost:8080/api/customer/purchaseCoupon/",
-        getAllCoupons: "http://localhost:8080/api/customer/customerCoupons",
-        getCouponsByCategory: "http://localhost:8080/api/customer/customerCouponsByCategory",
-        getCouponsByMaxPrice: "http://localhost:8080/api/customer/customerCouponsByMaxPrice",
-        getCustomerDetails: "http://localhost:8080/api/customer/customerDetails",
-        updateDetails: "http://localhost:8080/api/customer/updateDetails",
+        purchaseCoupon: `${DevelopmentGlobals.baseUrl}/api/customer/purchaseCoupon/`,
+        getAllCoupons: `${DevelopmentGlobals.baseUrl}/api/customer/customerCoupons`,
+        getCouponsByCategory: `${DevelopmentGlobals.baseUrl}/api/customer/customerCouponsByCategory`,
+        getCouponsByMaxPrice: `${DevelopmentGlobals.baseUrl}/api/customer/customerCouponsByMaxPrice`,
+        getCustomerDetails: `${DevelopmentGlobals.baseUrl}/api/customer/customerDetails`,
+        updateDetails: `${DevelopmentGlobals.baseUrl}/api/customer/updateDetails`,
     }
     public coupon = {
-        allCoupons: "http://localhost:8080/api/allCoupons/",
+        allCoupons: `${DevelopmentGlobals.baseUrl}/api/allCoupons/`,
     }
     public guest ={
-        allSystemCoupons: "http://localhost:8080/api/guest/allSystemCoupons",
-        allCouponsByMaxPrice: "http://localhost:8080/api/guest/allCouponsByMaxPrice",
-        allCouponsByCategory: "http://localhost:8080/api/guest/allCouponsByCategory",
-        register: "http://localhost:8080/api/guest/register",
+        allSystemCoupons: `${DevelopmentGlobals.baseUrl}/api/guest/allSystemCoupons`,
+        allCouponsByMaxPrice: `${DevelopmentGlobals.baseUrl}/api/guest/allCouponsByMaxPrice`,
+        allCouponsByCategory: `${DevelopmentGlobals.baseUrl}/api/guest/allCouponsByCategory`,
+        register: `${DevelopmentGlobals.baseUrl}/api/guest/register`,
     }
     public urls = {
-        login: "http://localhost:8080/api/login",
-        guest: "http://localhost:8080/api/",
+        login: `${DevelopmentGlobals.baseUrl}/api/login`,
+        guest: `${DevelopmentGlobals.baseUrl}/api/`,
     }
 }
 
 class ProductionGlobals extends Globals {
+    private static backendUrl = "https://coupons.runmydocker-app.com";
+
     public admin = {
-        adminMenu: "/api/adminMenu",
-        addCompany: "/api/admin/addCompany",
+        adminMenu: `${ProductionGlobals.backendUrl}/api/adminMenu`,
+        addCompany: `${ProductionGlobals.backendUrl}/api/admin/addCompany`,
         // FIX: Changed addCustomers to addCustomer (singular)
-        addCustomer: "/api/admin/addCustomer",
-        getAllCompanies: "/api/admin/getAllCompanies",
-        getAllCustomers: "/api/admin/getAllCustomers",
-        getOneCompany: "/api/admin/getOneCompany/",
-        getOneCustomer: "/api/admin/getOneCustomer/",
-        updateCompany: "/api/admin/updateCompany",
-        updateCustomer: "/api/admin/updateCustomer",
-        deleteCompany: "/api/admin/deleteCompany/",
-        deleteCustomer: "/api/admin/deleteCustomer/",
+        addCustomer: `${ProductionGlobals.backendUrl}/api/admin/addCustomer`,
+        getAllCompanies: `${ProductionGlobals.backendUrl}/api/admin/getAllCompanies`,
+        getAllCustomers: `${ProductionGlobals.backendUrl}/api/admin/getAllCustomers`,
+        getOneCompany: `${ProductionGlobals.backendUrl}/api/admin/getOneCompany/`,
+        getOneCustomer: `${ProductionGlobals.backendUrl}/api/admin/getOneCustomer/`,
+        updateCompany: `${ProductionGlobals.backendUrl}/api/admin/updateCompany`,
+        updateCustomer: `${ProductionGlobals.backendUrl}/api/admin/updateCustomer`,
+        deleteCompany: `${ProductionGlobals.backendUrl}/api/admin/deleteCompany/`,
+        deleteCustomer: `${ProductionGlobals.backendUrl}/api/admin/deleteCustomer/`,
     }
     public company = {
-        addCoupon: "/api/company/addCoupon",
-        deleteCoupon: "/api/company/deleteCoupon/",
-        getAllCoupons: "/api/company/allCoupons",
-        getCompanyDetails: "/api/company/companyDetails/",
-        getCouponByCategory: "/api/company/allCouponsByCategory",
-        getCouponByMaxPrice: "/api/company/allCouponsByMaxPrice",
-        updateCoupon: "/api/company/updateCoupon",
-        updateDetails: "/api/company/updateDetails",
-        getOneCompanyCoupon: "/api/company/getOneCompany/"
+        addCoupon: `${ProductionGlobals.backendUrl}/api/company/addCoupon`,
+        deleteCoupon: `${ProductionGlobals.backendUrl}/api/company/deleteCoupon/`,
+        getAllCoupons: `${ProductionGlobals.backendUrl}/api/company/allCoupons`,
+        getCompanyDetails: `${ProductionGlobals.backendUrl}/api/company/companyDetails/`,
+        getCouponByCategory: `${ProductionGlobals.backendUrl}/api/company/allCouponsByCategory`,
+        getCouponByMaxPrice: `${ProductionGlobals.backendUrl}/api/company/allCouponsByMaxPrice`,
+        updateCoupon: `${ProductionGlobals.backendUrl}/api/company/updateCoupon`,
+        updateDetails: `${ProductionGlobals.backendUrl}/api/company/updateDetails`,
+        getOneCompanyCoupon: `${ProductionGlobals.backendUrl}/api/company/getOneCompany/`
     }
     public customer = {
-        purchaseCoupon: "/api/customer/purchaseCoupon/",
-        getAllCoupons: "/api/customer/customerCoupons",
-        getCouponsByCategory: "/api/customer/customerCouponsByCategory/",
-        getCouponsByMaxPrice: "/api/customer/customerCouponsByMaxPrice/",
-        getCustomerDetails: "/api/customer/customerDetails",
-        updateDetails: "/api/customer/updateDetails",
+        purchaseCoupon: `${ProductionGlobals.backendUrl}/api/customer/purchaseCoupon/`,
+        getAllCoupons: `${ProductionGlobals.backendUrl}/api/customer/customerCoupons`,
+        getCouponsByCategory: `${ProductionGlobals.backendUrl}/api/customer/customerCouponsByCategory/`,
+        getCouponsByMaxPrice: `${ProductionGlobals.backendUrl}/api/customer/customerCouponsByMaxPrice/`,
+        getCustomerDetails: `${ProductionGlobals.backendUrl}/api/customer/customerDetails`,
+        updateDetails: `${ProductionGlobals.backendUrl}/api/customer/updateDetails`,
     }
     public coupon = {
-        allCoupons: "/api/allCoupons",
+        allCoupons: `${ProductionGlobals.backendUrl}/api/allCoupons`,
     }
     public guest ={
-        allSystemCoupons: "/api/guest/allSystemCoupons",
-        allCouponsByCategory: "/api/guest/allCouponsByCategory",
-        allCouponsByMaxPrice: "/api/guest/allCouponsByMaxPrice",
-        register: "/api/guest/register",
+        allSystemCoupons: `${ProductionGlobals.backendUrl}/api/guest/allSystemCoupons`,
+        allCouponsByCategory: `${ProductionGlobals.backendUrl}/api/guest/allCouponsByCategory`,
+        allCouponsByMaxPrice: `${ProductionGlobals.backendUrl}/api/guest/allCouponsByMaxPrice`,
+        register: `${ProductionGlobals.backendUrl}/api/guest/register`,
     }
     public urls = {
-        login: "/api/login",
+        login: `${ProductionGlobals.backendUrl}/api/login`,
     }
 }
 

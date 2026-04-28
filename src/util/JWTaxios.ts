@@ -11,54 +11,48 @@ jwtAxios.interceptors.request.use(request => {
     return request;
 });
 
-// Response interceptor with an advanced Retry Mechanism
+// Response interceptor with an advanced Retry Mechanism for CORS & Cold Starts
 jwtAxios.interceptors.response.use(
     async (response) => {
-        // Detect if the free server is waking up and returning an HTML loading page instead of JSON
+        // אם שרת חינמי מחזיר דף HTML במקום JSON בזמן התעוררות
         if (typeof response.data === 'string' && response.data.toLowerCase().includes('<html')) {
-            const originalRequest = response.config as any;
+            const config = { ...response.config } as any;
+            config._retryCount = (config._retryCount || 0) + 1;
             
-            if (!originalRequest._retryCount) {
-                originalRequest._retryCount = 0;
-            }
-            
-            // Retry up to 10 times (approx 30 seconds total waiting)
-            if (originalRequest._retryCount < 10) {
-                originalRequest._retryCount += 1;
+            if (config._retryCount <= 10) {
                 window.dispatchEvent(new Event('serverWakingUp'));
                 await new Promise(resolve => setTimeout(resolve, 3000));
-                return jwtAxios(originalRequest);
+                return jwtAxios(config);
             }
             return Promise.reject(new Error("Server timeout"));
         }
 
-        // Valid JSON response received, server is fully awake
+        // התקבלה תשובה תקינה (השרת ער)
         window.dispatchEvent(new Event('serverAwake'));
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
-        
-        // If config is completely lost, reject normally
-        if (!originalRequest) {
-            return Promise.reject(error);
+        // זיהוי חסימת CORS מוחלטת או שגיאת רשת בגלל שרת כבוי
+        const isCorsOrNetworkError = 
+            !error.response || 
+            error.message === 'Network Error' || 
+            error.code === 'ERR_NETWORK' ||
+            error.response.status >= 500;
+
+        if (isCorsOrNetworkError && error.config) {
+            // יצירת עותק נקי של הבקשה המקורית כדי שאקסיוס לא יאבד אותה
+            const config = { ...error.config } as any;
+            config._retryCount = (config._retryCount || 0) + 1;
+
+            // נסה שוב עד 10 פעמים (כ-30 שניות המתנה)
+            if (config._retryCount <= 10) {
+                window.dispatchEvent(new Event('serverWakingUp'));
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                return jwtAxios(config);
+            }
         }
 
-        if (!originalRequest._retryCount) {
-            originalRequest._retryCount = 0;
-        }
-
-        // Identify standard cold start errors: 502, 503, 504, or Network Error (missing CORS)
-        const isColdStartError = !error.response || error.response.status >= 500;
-
-        if (isColdStartError && originalRequest._retryCount < 10) {
-            originalRequest._retryCount += 1;
-            window.dispatchEvent(new Event('serverWakingUp'));
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            return jwtAxios(originalRequest);
-        }
-
-        // Standard operational error (e.g., 401 Unauthorized, 404 Not Found)
+        // במקרה של שגיאה רגילה (למשל 401 או 404)
         return Promise.reject(error);
     }
 );

@@ -11,39 +11,54 @@ jwtAxios.interceptors.request.use(request => {
     return request;
 });
 
-// Response interceptor with a smart Retry Mechanism for cold starts
+// Response interceptor with an advanced Retry Mechanism
 jwtAxios.interceptors.response.use(
-    (response) => {
-        // Success! If the UI was showing a "Waking up" message, tell it to stop.
+    async (response) => {
+        // Detect if the free server is waking up and returning an HTML loading page instead of JSON
+        if (typeof response.data === 'string' && response.data.toLowerCase().includes('<html')) {
+            const originalRequest = response.config as any;
+            
+            if (!originalRequest._retryCount) {
+                originalRequest._retryCount = 0;
+            }
+            
+            // Retry up to 10 times (approx 30 seconds total waiting)
+            if (originalRequest._retryCount < 10) {
+                originalRequest._retryCount += 1;
+                window.dispatchEvent(new Event('serverWakingUp'));
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                return jwtAxios(originalRequest);
+            }
+            return Promise.reject(new Error("Server timeout"));
+        }
+
+        // Valid JSON response received, server is fully awake
         window.dispatchEvent(new Event('serverAwake'));
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
+        
+        // If config is completely lost, reject normally
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
 
-        // Initialize retry counter
         if (!originalRequest._retryCount) {
             originalRequest._retryCount = 0;
         }
 
-        // Check if the error is a cold start (Network Error or 502/503 from runmydocker)
-        const isColdStartError = !error.response || error.response.status === 502 || error.response.status === 503;
+        // Identify standard cold start errors: 502, 503, 504, or Network Error (missing CORS)
+        const isColdStartError = !error.response || error.response.status >= 500;
 
-        // If it's a cold start and we haven't retried 4 times yet, wait and try again
-        if (isColdStartError && originalRequest._retryCount < 4) {
+        if (isColdStartError && originalRequest._retryCount < 10) {
             originalRequest._retryCount += 1;
-
-            // Dispatch a custom event so the LoadingSpinner knows to show the text
             window.dispatchEvent(new Event('serverWakingUp'));
-
-            // Wait 3 seconds silently before retrying
             await new Promise(resolve => setTimeout(resolve, 3000));
-
-            // Retry the original request
             return jwtAxios(originalRequest);
         }
 
-        // If it's a normal error (e.g., 401 Unauthorized) or we exceeded retries, throw normally
+        // Standard operational error (e.g., 401 Unauthorized, 404 Not Found)
         return Promise.reject(error);
     }
 );

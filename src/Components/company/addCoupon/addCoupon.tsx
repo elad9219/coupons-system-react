@@ -106,10 +106,40 @@ function AddCoupon(): JSX.Element {
                             </Grid>
 
                             <Grid item xs={6}>
-                                <TextField type="number" label="כמות" size="small" fullWidth {...register("amount", { required: true, min: 1 })} InputLabelProps={{ shrink: true }} />
+                                <TextField 
+                                    type="number" 
+                                    label="כמות" 
+                                    size="small" 
+                                    fullWidth 
+                                    {...register("amount", { required: true, min: 1 })} 
+                                    InputLabelProps={{ shrink: true }} 
+                                />
                             </Grid>
                             <Grid item xs={6}>
-                                <TextField type="number" label="מחיר (₪)" size="small" fullWidth {...register("price", { required: true, min: 1 })} InputLabelProps={{ shrink: true }} />
+                                <TextField 
+                                    type="number" 
+                                    label="מחיר (₪)" 
+                                    size="small" 
+                                    fullWidth 
+                                    {...register("price", { 
+                                        required: true, 
+                                        min: 1, 
+                                        max: { value: 9999, message: "מחיר מקסימלי: 9999" } 
+                                    })} 
+                                    error={!!errors.price}
+                                    helperText={errors.price?.message}
+                                    InputLabelProps={{ shrink: true }} 
+                                    inputProps={{ 
+                                        min: 1, 
+                                        max: 9999,
+                                        // Block typing numbers higher than 9999 at the DOM level
+                                        onInput: (e: React.ChangeEvent<HTMLInputElement>) => {
+                                            if (Number(e.target.value) > 9999) {
+                                                e.target.value = '9999';
+                                            }
+                                        }
+                                    }}
+                                />
                             </Grid>
 
                             <Grid item xs={12}>

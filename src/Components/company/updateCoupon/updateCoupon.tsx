@@ -139,13 +139,21 @@ function UpdateCoupon(): JSX.Element {
                         </Grid>
 
                         <Grid item xs={6}>
+                            {/* Added native HTML max constraint to prevent values over 9999 */}
                             <TextField 
                                 type="number" 
                                 label="מחיר" 
                                 fullWidth 
                                 size="small"
                                 value={coupon.price} 
-                                onChange={e => setCoupon({ ...coupon, price: +e.target.value })} 
+                                onChange={e => {
+                                    // Fallback block if user tries to type more than 9999
+                                    const val = +e.target.value;
+                                    if(val <= 9999) {
+                                        setCoupon({ ...coupon, price: val });
+                                    }
+                                }} 
+                                inputProps={{ min: 1, max: 9999 }}
                                 required
                             />
                         </Grid>

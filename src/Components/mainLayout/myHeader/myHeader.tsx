@@ -19,14 +19,14 @@ function MyHeader(): JSX.Element {
 
     const logout = () => {
         dispatch(userLogout());
-        localStorage.removeItem('token');
+        // Changed to sessionStorage
+        sessionStorage.removeItem('token');
         navigate("/");
     };
 
     return (
         <AppBar position="sticky" color="primary" elevation={3}>
             <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-                {/* Logo Section */}
                 <IconButton 
                     edge="start" 
                     color="inherit" 
@@ -36,19 +36,16 @@ function MyHeader(): JSX.Element {
                     <img src={homepage} alt="logo" style={{width: 32, height: 32, filter: 'brightness(0) invert(1)'}} />
                 </IconButton>
 
-                {/* Brand Text - Reduced pr to 2 for a more subtle spacing */}
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: 1, pr: 2 }}>
                     אתר קופונים
                 </Typography>
 
-                {/* User Greeting */}
                 {userType && (
                     <Typography variant="body1" sx={{ marginLeft: 3, fontWeight: 500 }}>
                         שלום, {userName || "אורח"}
                     </Typography>
                 )}
 
-                {/* Auth Buttons */}
                 <Box sx={{ marginLeft: 3 }}>
                     {!userType ? (
                         <Button 

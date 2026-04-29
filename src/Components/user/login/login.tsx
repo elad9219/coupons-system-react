@@ -29,7 +29,8 @@ function Login(): JSX.Element {
         jwtAxios.post(globals.urls.login, credentials)
             .then(response => {
                 const token = response.headers.authorization;
-                localStorage.setItem('token', token);
+                // Changed to sessionStorage
+                sessionStorage.setItem('token', token);
                 dispatch(userLogin(token));
 
                 const currentUserType = store.getState().authState.userType;
@@ -66,7 +67,6 @@ function Login(): JSX.Element {
             });
     };
 
-    // Helper function to fill demo credentials
     const fillDemoCredentials = (type: string) => {
         setUserType(type);
         switch (type) {
@@ -92,7 +92,6 @@ function Login(): JSX.Element {
                     כניסה למערכת
                 </Typography>
 
-                {/* Demo Area - Quick Login Buttons */}
                 <Box sx={{ mb: 3, p: 2, bgcolor: '#e3f2fd', borderRadius: 2, border: '1px solid #90caf9' }}>
                     <Typography variant="subtitle2" color="primary" align="center" sx={{ mb: 1, fontWeight: 'bold' }}>
                         כניסה מהירה להדגמה
@@ -103,7 +102,6 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="error"
                                 size="small"
-                                // Added marginLeft to the icon for spacing in RTL
                                 startIcon={<AdminPanelSettingsIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("ADMIN")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
@@ -116,7 +114,6 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="info"
                                 size="small"
-                                // Added marginLeft to the icon for spacing in RTL
                                 startIcon={<BusinessIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("COMPANY")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}
@@ -129,7 +126,6 @@ function Login(): JSX.Element {
                                 variant="outlined"
                                 color="success"
                                 size="small"
-                                // Added marginLeft to the icon for spacing in RTL
                                 startIcon={<PersonIcon sx={{ ml: 1 }} />}
                                 onClick={() => fillDemoCredentials("CUSTOMER")}
                                 sx={{ borderRadius: 20, textTransform: 'none' }}

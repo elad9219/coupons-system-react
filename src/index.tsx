@@ -11,8 +11,8 @@ import { loadToken } from './redux/authState';
 import { ThemeProvider } from '@mui/material/styles'; // Import MUI ThemeProvider
 import myTheme from './util/myTheme'; // Import custom theme
 
-// Load token from localStorage
-const token = localStorage.getItem('token');
+// Load token from sessionStorage instead of localStorage
+const token = sessionStorage.getItem('token');
 if (token) {
     store.dispatch(loadToken(token));
 }

@@ -21,20 +21,19 @@ function MainLayout(): JSX.Element {
     const userType = useSelector((state: RootState) => state.authState.userType);
 
     useEffect(() => {
-        localStorage.setItem('lastPath', location.pathname);
+        // Changed to sessionStorage
+        sessionStorage.setItem('lastPath', location.pathname);
     }, [location]);
 
-    // This effect ensures that on Page Refresh, if a token exists, we fetch the data again.
     useEffect(() => {
-        const token = localStorage.getItem("token");
+        // Changed to sessionStorage
+        const token = sessionStorage.getItem("token");
         if (token) {
-            // 1. Restore Auth State
             store.dispatch(userLogin(token));
             try {
                 const decoded: any = jwt_decode(token);
                 const decodedUserType = decoded.userType; 
                 
-                // 2. Fetch Data based on type to restore Redux state
                 if (decodedUserType === "CUSTOMER") {
                     jwtAxios.get(globals.customer.getCustomerDetails)
                         .then(res => {
@@ -64,7 +63,6 @@ function MainLayout(): JSX.Element {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }} dir="rtl">
             <CssBaseline />
 
-            {/* Header */}
             <Box component="header" sx={{ zIndex: 1200 }}>
                 <MyHeader/>
             </Box>
@@ -86,7 +84,6 @@ function MainLayout(): JSX.Element {
                 </Grid>
             </Grid>
 
-            {/* Footer */}
             <Box component="footer" sx={{ mt: 'auto' }}>
                 <MyFooter/>
             </Box>

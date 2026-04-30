@@ -5,7 +5,7 @@ A comprehensive full-stack web application for managing, selling, and purchasing
 ## **Quick Links**
 
 * **Live Demo**: [https://coupons-gamma.vercel.app/](https://coupons-gamma.vercel.app/) 
-* **Swagger API**: [https://coupons-gamma.vercel.app/swagger-ui.html#/](https://coupons-gamma.vercel.app/swagger-ui.html#/) 
+* **Swagger API**: [https://coupons.runmydocker-app.com/swagger-ui.html](https://coupons.runmydocker-app.com/swagger-ui.html) 
 * **Backend Repository**: [https://github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)  
 * **Frontend Repository**: [https://github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
 

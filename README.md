@@ -174,9 +174,9 @@ The Coupons System is a Single Page Application (SPA) designed to handle high-lo
 
 Ensure you have a PostgreSQL instance running. Update the application.properties file:
 
-spring.datasource.url=jdbc:postgresql://\[node128.codingbc.com:7878/niv\_test\](https://node128.codingbc.com:7878/niv\_test)  
-spring.datasource.username=postgres  
-spring.datasource.password=Nov2017890\#
+spring.datasource.url=jdbc:postgresql://<HOST>:<PORT>/<DATABASE>
+spring.datasource.username=<USERNAME>
+spring.datasource.password=<PASSWORD>
 
 ### **2\. Backend Setup**
 

@@ -1,238 +1,170 @@
-# **Coupons Management System**
+# Coupons Management System
 
-A comprehensive full-stack web application for managing, selling, and purchasing coupons. The system facilitates a marketplace connecting companies and customers, governed by an administrator. Built with **Spring Boot** (Java) for the backend and **React** (TypeScript) with **Material UI** for the frontend.
+A full-stack coupon marketplace built with Spring Boot and React. The application supports administrator, company, customer, and guest flows, with JWT authentication, role-based authorization, inventory validation, scheduled coupon expiration handling, and a responsive Material UI frontend.
 
-## **Quick Links**
+## Quick Links
 
-* **Live Demo**: [https://coupons-gamma.vercel.app/](https://coupons-gamma.vercel.app/) 
-* **Swagger API**: [https://coupons.runmydocker-app.com/swagger-ui.html](https://coupons.runmydocker-app.com/swagger-ui.html) 
-* **Backend Repository**: [https://github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)  
-* **Frontend Repository**: [https://github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
+- **Live Demo:** [coupons-gamma.vercel.app](https://coupons-gamma.vercel.app/)
+- **API Documentation (Swagger):** [coupons.runmydocker-app.com/swagger-ui.html](https://coupons.runmydocker-app.com/swagger-ui.html)
+- **Backend Repository:** [github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)
+- **Frontend Repository:** [github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
 
-## **Table of Contents**
+## Highlights
 
-* [Overview](https://www.google.com/search?q=%23overview)  
-* [Features](https://www.google.com/search?q=%23features)  
-* [Technologies](https://www.google.com/search?q=%23technologies)  
-* [Screenshots](https://www.google.com/search?q=%23screenshots)  
-* [Installation](https://www.google.com/search?q=%23installation)  
-* [Usage & Demo Credentials](https://www.google.com/search?q=%23usage)  
-* [Project Structure](https://www.google.com/search?q=%23project-structure)  
-* [Contact](https://www.google.com/search?q=%23contact)
+- **Role-based access:** Separate capabilities for administrators, companies, customers, and guests.
+- **JWT authentication:** Spring Security and JWT protect authenticated application flows.
+- **Real-time purchase validation:** Validates stock and expiration before a coupon purchase is completed.
+- **Scheduled expiration handling:** A background job checks for expired coupons and updates the system automatically.
+- **Company inventory management:** Companies can create, update, delete, filter, and monitor their coupons.
+- **Customer marketplace:** Customers can browse, purchase, filter, and view previously purchased coupons.
+- **Responsive frontend:** React, TypeScript, Redux Toolkit, React Router, Material UI, and Axios interceptors.
 
-## **Overview**
+> **Database note:** The project was originally developed with MySQL and was later migrated to PostgreSQL for deployment.
 
-The Coupons System is a Single Page Application (SPA) designed to handle high-load coupon trading. It features a robust **RESTful API**, JWT-based authentication, and a scheduled daily job that automatically invalidates expired coupons. The frontend provides a responsive, professional dashboard for all user types.
+## Technologies
 
-## **Features**
+### Backend
 
-### **For Administrator**
+- Java 11
+- Spring Boot 2.7.11
+- Spring Data JPA / Hibernate
+- PostgreSQL
+- Spring Security
+- JWT
+- Swagger 2
+- Lombok
+- Maven
 
-* **Company Management**: Add, update, delete, and view all companies in the system.  
-* **Customer Management**: Add, update, delete, and view all customers.  
-* **System Oversight**: Full access to view system data.
+### Frontend
 
-### **For Companies**
+- React 18
+- TypeScript
+- Redux Toolkit
+- React Router DOM v6
+- Material UI v5
+- Axios with interceptors
 
-* **Coupon Management**: Create new coupons with categories, prices, images, and expiration dates.  
-* **Inventory Control**: Update existing coupons and track stock (Amount).  
-* **Dashboard**: View all active coupons belonging to the specific company.  
-* **Filtering**: Filter coupons by category and maximum price.
+### Deployment
 
-### **For Customers**
+- Docker
+- Vercel frontend deployment
 
-* **Marketplace**: Browse all available coupons in the system.  
-* **Purchase System**: Buy coupons (stock and expiration validated in real-time).  
-* **Personal Portfolio**: View purchased coupons history.  
-* **Smart Filtering**: Filter available or owned coupons by category and price.
+## Screenshots
 
-### **General / System**
+### Home Page
 
-* **Security**: Secure Login with JWT (JSON Web Tokens) and Role-Based Access Control (RBAC).  
-* **Daily Job**: Background thread that runs once a day to detect and mark expired coupons.  
-* **Guest Mode**: View available coupons and register as a new customer.
+<img width="2512" height="1270" alt="Coupons home page" src="https://github.com/user-attachments/assets/6d8f561f-6869-4500-80fe-36e66184b5a2" />
 
-## **Technologies**
+### Login Page
 
-### **Backend**
+<img width="2557" height="1271" alt="Coupons login page" src="https://github.com/user-attachments/assets/81ab870a-096c-4ffc-aec8-242cff011891" />
 
-* **Language**: Java 11  
-* **Framework**: Spring Boot 2.7.11  
-* **Database**: PostgreSQL  
-* **ORM**: Hibernate / Spring Data JPA  
-* **Security**: Spring Security, JWT (jjwt)  
-* **Documentation**: Swagger 2  
-* **Tools**: Lombok, Maven
+### Get All Companies
 
-### **Frontend**
+<img width="2553" height="1266" alt="Administrator company management" src="https://github.com/user-attachments/assets/4ef1f8b6-1288-412d-a003-ba826a6f0f1b" />
 
-* **Framework**: React 18  
-* **Language**: TypeScript  
-* **State Management**: Redux Toolkit  
-* **Routing**: React Router DOM v6  
-* **UI Library**: Material UI (MUI) v5  
-* **HTTP Client**: Axios (with Interceptors)
+### Get a Customer by ID
 
-### **DevOps**
+<img width="2545" height="1266" alt="Customer lookup" src="https://github.com/user-attachments/assets/e4adeb59-0f3c-4619-8d63-6c9c151ec33a" />
 
-* **Containerization**: Docker  
-* **Deployment**: Docker Cloud
+### Add a Company
 
-## **Screenshots**
+<img width="2550" height="1270" alt="Add company form" src="https://github.com/user-attachments/assets/73a88301-a3a6-44a5-b0b5-b931e1441ddb" />
 
+### Create a Coupon
 
+<img width="2554" height="1271" alt="Create coupon form" src="https://github.com/user-attachments/assets/45cee5c1-ce9e-4850-a4c7-5c280d656525" />
 
-### **Home Page**
+### Purchase a Coupon
 
+<img width="2559" height="1270" alt="Coupon purchase flow" src="https://github.com/user-attachments/assets/727fe491-e3e0-4b9c-9006-815e4e6d0b9a" />
 
+## Demo Credentials
 
+These are public demo accounts intended only for testing the deployed application.
 
-<img width="2512" height="1270" alt="image" src="https://github.com/user-attachments/assets/6d8f561f-6869-4500-80fe-36e66184b5a2" />
+| Role | Email | Password |
+| --- | --- | --- |
+| Administrator | `admin@admin.com` | `admin` |
+| Company | `sony@contact.com` | `1234` |
+| Customer | `kobi@gmail.com` | `1234` |
 
+## Local Setup
 
+### Prerequisites
 
+- Java 11
+- Maven
+- Node.js and npm
+- PostgreSQL
+- Docker (optional)
 
+### Backend
 
-### **Login Page**
+```bash
+git clone https://github.com/elad9219/coupons-system-backend.git
+cd coupons-system-backend
+```
 
+Create your local `src/main/resources/application.properties` from the example file and use your own database values:
 
-
-<img width="2557" height="1271" alt="image" src="https://github.com/user-attachments/assets/81ab870a-096c-4ffc-aec8-242cff011891" />
-
-
-
-
-
-### **Get All Companies**
-
-
-
-<img width="2553" height="1266" alt="image" src="https://github.com/user-attachments/assets/4ef1f8b6-1288-412d-a003-ba826a6f0f1b" />
-
-
-
-
-
-### **Get a Customer By ID **
-
-
-
-<img width="2545" height="1266" alt="image" src="https://github.com/user-attachments/assets/e4adeb59-0f3c-4619-8d63-6c9c151ec33a" />
-
-
-
-
-
-### **Add a Company**
-
-
-
-<img width="2550" height="1270" alt="image" src="https://github.com/user-attachments/assets/73a88301-a3a6-44a5-b0b5-b931e1441ddb" />
-
-
-
-
-
-### **Create a Coupon**
-
-
-
-
-
-<img width="2554" height="1271" alt="image" src="https://github.com/user-attachments/assets/45cee5c1-ce9e-4850-a4c7-5c280d656525" />
-
-
-
-
-
-
-### **Purchase a Coupon**
-
-
-
-
-<img width="2559" height="1270" alt="image" src="https://github.com/user-attachments/assets/727fe491-e3e0-4b9c-9006-815e4e6d0b9a" />
-
-
-
-
-
-
-
-
-
-## **Installation**
-
-### **Prerequisites**
-
-* Java 11 JDK  
-* Node.js & npm  
-* PostgreSQL Database  
-* Docker (Optional)
-
-### **1\. Database Setup**
-
-Ensure you have a PostgreSQL instance running. Update the application.properties file:
-
+```properties
 spring.datasource.url=jdbc:postgresql://<HOST>:<PORT>/<DATABASE>
 spring.datasource.username=<USERNAME>
 spring.datasource.password=<PASSWORD>
+```
 
-### **2\. Backend Setup**
+Then build and run:
 
-Navigate to the backend directory and run:
-
-mvn clean install  
+```bash
+mvn clean install
 mvn spring-boot:run
+```
 
-### **3\. Frontend Setup**
+### Frontend
 
-Navigate to the frontend directory and run:
-
-npm install  
+```bash
+git clone https://github.com/elad9219/coupons-system-react.git
+cd coupons-system-react
+npm install
 npm start
+```
 
-## **Usage**
+## Project Structure
 
-To test the system immediately, use these demo credentials:
+### Backend
 
-| Role | Email | Password |
-| ----: | ----: | ----: |
-| **Administrator** | admin@admin.com | admin |
-| **Company** | sony@contact.com | 1234 |
-| **Customer** | kobi@gmail.com | 1234 |
+```text
+src/main/java/com/jb/spring_coupons_project/
+├── advice/
+├── beans/
+├── clr/
+├── config/
+├── controller/
+├── dailyJob/
+├── repository/
+├── security/
+└── service/
+```
 
-## **Project Structure**
+### Frontend
 
-### **Backend Structure**
+```text
+src/
+├── Components/
+│   ├── admin/
+│   ├── company/
+│   ├── customer/
+│   ├── user/
+│   ├── mainLayout/
+│   └── routing/
+├── redux/
+└── util/
+```
 
-src/main/java/com/jb/spring\_coupons\_project/  
-├── advice/           \# Global Exception Handlers  
-├── beans/            \# Entities (Company, Customer, Coupon)  
-├── clr/              \# Data Seeding (CommandLineRunner)  
-├── config/           \# CORS, Swagger, RestTemplate Config  
-├── controller/       \# REST Controllers (API Endpoints)  
-├── dailyJob/         \# Scheduled Tasks (Expiration Logic)  
-├── repository/       \# JPA Repositories (DAO)  
-├── security/         \# JWT Utilities & Logic  
-└── service/          \# Business Logic (Admin, Company, Customer)
+## Contact
 
-### **Frontend Structure**
-
-src/  
-├── Components/  
-│   ├── admin/        \# Admin specific components  
-│   ├── company/      \# Company specific components  
-│   ├── customer/     \# Customer specific components  
-│   ├── user/         \# Login, Register, Public views  
-│   ├── mainLayout/   \# Layout wrapper  
-│   └── routing/      \# App Routes  
-├── redux/            \# Store and Reducers  
-└── util/             \# Interceptors and Globals
-
-## **Contact**
-
-* **Author**: Elad Tennenboim  
-* **GitHub**: [elad9219](https://github.com/elad9219)  
-* **Email**: elad9219@gmail.com  
-* **LinkedIn**: [https://www.linkedin.com/in/elad-tennenboim/](https://www.linkedin.com/in/elad-tennenboim/)
+- **Elad Tennenboim**
+- **GitHub:** [elad9219](https://github.com/elad9219)
+- **LinkedIn:** [linkedin.com/in/elad-tennenboim](https://www.linkedin.com/in/elad-tennenboim/)
+- **Email:** elad9219@gmail.com

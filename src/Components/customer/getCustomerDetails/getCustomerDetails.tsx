@@ -1,20 +1,29 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    Container,
+    Paper,
+    Typography,
+    Box,
+    TextField,
+    Button
+} from "@mui/material";
+import { Customer } from "../../../modal/Customer";
 import { store } from "../../../redux/store";
-import { Customer } from '../../../modal/Customer';
-import { Container, Paper, Typography, Box, TextField, Button, InputAdornment, IconButton } from "@mui/material";
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 function GetCustomerDetails(): JSX.Element {
     const navigate = useNavigate();
+
     const [customer, setCustomer] = useState<Customer | null>(null);
+    const [savedCustomer, setSavedCustomer] = useState<Customer | null>(null);
+    const [newPassword, setNewPassword] = useState("");
     const [loading, setLoading] = useState(true);
-    const [showPassword, setShowPassword] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [editMode, setEditMode] = useState(false);
 
     useEffect(() => {
@@ -25,74 +34,150 @@ function GetCustomerDetails(): JSX.Element {
         }
 
         jwtAxios.get<Customer>(globals.customer.getCustomerDetails)
-            .then(res => {
-                setCustomer(res.data);
-                setLoading(false);
+            .then(response => {
+                setCustomer(response.data);
+                setSavedCustomer(response.data);
             })
             .catch(() => {
+                notify.error("שגיאה בטעינת פרטי החשבון");
                 navigate("/login");
-            });
+            })
+            .finally(() => setLoading(false));
     }, [navigate]);
 
-    const handleSave = () => {
-        if (!customer) return;
-        
-        // FIX: Using the correct CUSTOMER endpoint instead of ADMIN endpoint
-        jwtAxios.put(globals.customer.updateDetails, customer)
-            .then(() => {
-                notify.success("פרטים עודכנו בהצלחה");
-                setEditMode(false);
-            })
-            .catch((err) => {
-                const msg = err.response?.data?.description || "שגיאה בעדכון פרטים";
-                notify.error(msg);
-            });
+    const handleSave = async () => {
+        if (!customer || saving) return;
+
+        setSaving(true);
+
+        const payload = {
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            email: customer.email,
+            ...(newPassword.trim() ? { password: newPassword } : {})
+        };
+
+        try {
+            await jwtAxios.put(globals.customer.updateDetails, payload);
+
+            setSavedCustomer({ ...customer });
+            setNewPassword("");
+            setEditMode(false);
+            notify.success("פרטים עודכנו בהצלחה");
+        } catch (error: any) {
+            notify.error(
+                error.response?.data?.description ||
+                "שגיאה בעדכון פרטים"
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        if (savedCustomer) {
+            setCustomer({ ...savedCustomer });
+        }
+
+        setNewPassword("");
+        setEditMode(false);
     };
 
     if (loading) return <LoadingSpinner />;
-    if (!customer) return <div>שגיאה בטעינת נתונים</div>;
+
+    if (!customer) {
+        return <Typography align="center">שגיאה בטעינת נתונים</Typography>;
+    }
 
     return (
         <Container maxWidth="xs" sx={{ mt: 4 }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
-                <Typography variant="h5" gutterBottom align="center" fontWeight="bold" color="primary">
+                <Typography
+                    variant="h5"
+                    gutterBottom
+                    align="center"
+                    fontWeight="bold"
+                    color="primary"
+                >
                     הפרופיל שלי
                 </Typography>
-                
-                <Box component="form" sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField 
-                        label="שם פרטי" size="small" value={customer.first_name} disabled={!editMode} 
-                        onChange={e => setCustomer({...customer, first_name: e.target.value})} 
+
+                <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <TextField
+                        label="שם פרטי"
+                        size="small"
+                        value={customer.first_name}
+                        disabled={!editMode || saving}
+                        onChange={e => setCustomer({
+                            ...customer,
+                            first_name: e.target.value
+                        })}
                     />
-                    <TextField 
-                        label="שם משפחה" size="small" value={customer.last_name} disabled={!editMode} 
-                        onChange={e => setCustomer({...customer, last_name: e.target.value})} 
+
+                    <TextField
+                        label="שם משפחה"
+                        size="small"
+                        value={customer.last_name}
+                        disabled={!editMode || saving}
+                        onChange={e => setCustomer({
+                            ...customer,
+                            last_name: e.target.value
+                        })}
                     />
-                    <TextField 
-                        label="אימייל" size="small" value={customer.email} disabled={!editMode} 
-                        onChange={e => setCustomer({...customer, email: e.target.value})} 
+
+                    <TextField
+                        label="אימייל"
+                        type="email"
+                        size="small"
+                        value={customer.email}
+                        disabled={!editMode || saving}
+                        onChange={e => setCustomer({
+                            ...customer,
+                            email: e.target.value
+                        })}
                     />
-                    <TextField 
-                        label="סיסמה" size="small" type={showPassword ? 'text' : 'password'} value={customer.password} disabled={!editMode} 
-                        onChange={e => setCustomer({...customer, password: e.target.value})} 
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                    
+
+                    {editMode && (
+                        <TextField
+                            label="סיסמה חדשה"
+                            type="password"
+                            size="small"
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            disabled={saving}
+                            autoComplete="new-password"
+                            helperText="השאר ריק כדי לשמור את הסיסמה הקיימת"
+                        />
+                    )}
+
                     {editMode ? (
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button variant="contained" onClick={handleSave} fullWidth> שמור </Button>
-                            <Button variant="outlined" onClick={() => setEditMode(false)} fullWidth> ביטול </Button>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleSave}
+                                disabled={saving}
+                                fullWidth
+                            >
+                                {saving ? "שומר..." : "שמור"}
+                            </Button>
+
+                            <Button
+                                variant="outlined"
+                                onClick={handleCancel}
+                                disabled={saving}
+                                fullWidth
+                            >
+                                ביטול
+                            </Button>
                         </Box>
                     ) : (
-                        <Button variant="contained" onClick={() => setEditMode(true)} fullWidth> עדכון פרטים </Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => setEditMode(true)}
+                            fullWidth
+                        >
+                            עדכון פרטים
+                        </Button>
                     )}
                 </Box>
             </Paper>

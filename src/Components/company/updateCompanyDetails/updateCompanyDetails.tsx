@@ -1,95 +1,147 @@
-import { TextField, Button, Container, Paper, Typography, Grid, Box } from "@mui/material";
-import { useEffect, useState } from "react";
+
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    TextField,
+    Button,
+    Container,
+    Paper,
+    Typography,
+    Grid,
+    Box
+} from "@mui/material";
 import { Company } from "../../../modal/Company";
-import jwtAxios from '../../../util/JWTaxios';
+import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
 import { store } from "../../../redux/store";
-import "./updateCompanyDetails.css";
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 
 function UpdateCompanyDetails(): JSX.Element {
     const navigate = useNavigate();
+
     const [company, setCompany] = useState<Company | null>(null);
+    const [newPassword, setNewPassword] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // Validation: Only companies can access this page
         if (store.getState().authState.userType !== "COMPANY") {
             notify.error("Access denied");
             navigate("/login");
             return;
         }
 
-        // Fetch company details
         jwtAxios.get<Company>(globals.company.getCompanyDetails)
-            .then(res => {
-                setCompany(res.data);
-            })
+            .then(response => setCompany(response.data))
             .catch(() => {
-                notify.error("Error fetching company data");
-            });
+                notify.error("שגיאה בטעינת פרטי החברה");
+            })
+            .finally(() => setLoading(false));
     }, [navigate]);
 
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!company) return;
-        
-        jwtAxios.put(globals.company.updateDetails, company)
-            .then(() => {
-                notify.success("הפרטים עודכנו בהצלחה");
-                navigate("/company/getComapnyDetails");
-            })
-            .catch((err) => {
-                const msg = err.response?.data?.description || "שגיאה בעדכון";
-                notify.error(msg);
-            });
+    const handleSave = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!company || saving) return;
+
+        setSaving(true);
+
+        const payload = {
+            name: company.name,
+            email: company.email,
+            ...(newPassword.trim() ? { password: newPassword } : {})
+        };
+
+        try {
+            await jwtAxios.put(globals.company.updateDetails, payload);
+            notify.success("הפרטים עודכנו בהצלחה");
+            navigate("/company/getComapnyDetails");
+        } catch (error: any) {
+            notify.error(
+                error.response?.data?.description ||
+                "שגיאה בעדכון פרטי החברה"
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
-    if (!company) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><Typography>Loading...</Typography></Box>;
+    if (loading) return <LoadingSpinner />;
+
+    if (!company) {
+        return (
+            <Box sx={{ mt: 5, textAlign: "center" }}>
+                <Typography>לא ניתן לטעון את פרטי החברה</Typography>
+            </Box>
+        );
+    }
 
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
-                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                <Typography
+                    variant="h5"
+                    align="center"
+                    gutterBottom
+                    fontWeight="bold"
+                    color="primary"
+                >
                     עדכון פרטי חברה
                 </Typography>
-                
+
                 <form onSubmit={handleSave}>
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
-                            <TextField 
-                                label="שם חברה" 
-                                fullWidth 
-                                size="small" 
-                                value={company.name} 
-                                disabled 
+                            <TextField
+                                label="שם חברה"
+                                fullWidth
+                                size="small"
+                                value={company.name}
+                                disabled
                             />
                         </Grid>
+
                         <Grid item xs={12}>
-                            <TextField 
-                                label="אימייל" 
-                                fullWidth 
-                                size="small" 
+                            <TextField
+                                label="אימייל"
                                 type="email"
-                                value={company.email} 
-                                onChange={e => setCompany({...company, email: e.target.value})} 
+                                fullWidth
+                                size="small"
+                                value={company.email}
+                                onChange={e => setCompany({
+                                    ...company,
+                                    email: e.target.value
+                                })}
+                                disabled={saving}
                                 required
                             />
                         </Grid>
+
                         <Grid item xs={12}>
-                            <TextField 
-                                label="סיסמה" 
-                                fullWidth 
-                                size="small" 
-                                type="text"
-                                value={company.password} 
-                                onChange={e => setCompany({...company, password: e.target.value})} 
-                                required
+                            <TextField
+                                label="סיסמה חדשה"
+                                type="password"
+                                fullWidth
+                                size="small"
+                                value={newPassword}
+                                onChange={e => setNewPassword(e.target.value)}
+                                disabled={saving}
+                                autoComplete="new-password"
+                                helperText="השאר ריק כדי לשמור את הסיסמה הקיימת"
                             />
                         </Grid>
+
                         <Grid item xs={12}>
-                            <Button type="submit" variant="contained" fullWidth size="large" sx={{ fontWeight: 'bold' }}>
-                                שמור שינויים
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                fullWidth
+                                size="large"
+                                disabled={saving}
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {saving ? "שומר..." : "שמור שינויים"}
                             </Button>
                         </Grid>
                     </Grid>

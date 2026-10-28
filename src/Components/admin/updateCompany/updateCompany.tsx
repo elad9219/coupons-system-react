@@ -1,8 +1,16 @@
-import { TextField, Button, Container, Paper, Typography, Grid } from "@mui/material";
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+    TextField,
+    Button,
+    Container,
+    Paper,
+    Typography,
+    Grid
+} from "@mui/material";
 import { Company } from "../../../modal/Company";
-import jwtAxios from '../../../util/JWTaxios';
+import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
@@ -10,25 +18,50 @@ import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 function UpdateCompany(): JSX.Element {
     const location = useLocation();
     const navigate = useNavigate();
-    const [company, setCompany] = useState<Company | null>(null);
+
     const companyId = (location.state as any)?.companyId;
 
-    useEffect(() => {
-        if (!companyId) { navigate("/admin/getAllCompanies"); return; }
+    const [company, setCompany] = useState<Company | null>(null);
+    const [newPassword, setNewPassword] = useState("");
+    const [saving, setSaving] = useState(false);
 
-        jwtAxios.get(globals.admin.getOneCompany + companyId)
+    useEffect(() => {
+        if (!companyId) {
+            navigate("/admin/getAllCompanies");
+            return;
+        }
+
+        jwtAxios.get<Company>(
+            globals.admin.getOneCompany + companyId
+        )
             .then(response => setCompany(response.data))
             .catch(() => notify.error("שגיאה בטעינת חברה"));
     }, [companyId, navigate]);
 
-    const handleSave = () => {
-        if (!company) return;
-        jwtAxios.put(globals.admin.updateCompany, company)
-            .then(() => {
-                notify.success("חברה עודכנה בהצלחה");
-                navigate("/admin/getAllCompanies");
-            })
-            .catch(() => notify.error("שגיאה בעדכון"));
+    const handleSave = async () => {
+        if (!company || saving) return;
+
+        setSaving(true);
+
+        const payload = {
+            id: company.id,
+            name: company.name,
+            email: company.email,
+            ...(newPassword.trim() ? { password: newPassword } : {})
+        };
+
+        try {
+            await jwtAxios.put(globals.admin.updateCompany, payload);
+            notify.success("חברה עודכנה בהצלחה");
+            navigate("/admin/getAllCompanies");
+        } catch (error: any) {
+            notify.error(
+                error.response?.data?.description ||
+                "שגיאה בעדכון חברה"
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (!company) return <LoadingSpinner />;
@@ -36,32 +69,65 @@ function UpdateCompany(): JSX.Element {
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }} dir="rtl">
-                <Typography variant="h5" align="center" gutterBottom fontWeight="bold" color="primary">
+                <Typography
+                    variant="h5"
+                    align="center"
+                    gutterBottom
+                    fontWeight="bold"
+                    color="primary"
+                >
                     עדכון פרטי חברה
                 </Typography>
+
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
-                        <TextField 
-                            label="שם חברה" fullWidth size="small" 
-                            value={company.name} disabled // Name usually cannot be changed easily in some systems, keep disabled or enable if backend supports
+                        <TextField
+                            label="שם חברה"
+                            fullWidth
+                            size="small"
+                            value={company.name}
+                            disabled
                         />
                     </Grid>
+
                     <Grid item xs={12}>
-                        <TextField 
-                            label="אימייל" fullWidth size="small" 
-                            value={company.email} 
-                            onChange={e => setCompany({...company, email: e.target.value})} 
+                        <TextField
+                            label="אימייל"
+                            type="email"
+                            fullWidth
+                            size="small"
+                            value={company.email}
+                            disabled={saving}
+                            onChange={e => setCompany({
+                                ...company,
+                                email: e.target.value
+                            })}
                         />
                     </Grid>
+
                     <Grid item xs={12}>
-                        <TextField 
-                            label="סיסמה" fullWidth size="small" 
-                            value={company.password} 
-                            onChange={e => setCompany({...company, password: e.target.value})} 
+                        <TextField
+                            label="סיסמה חדשה"
+                            type="password"
+                            fullWidth
+                            size="small"
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            disabled={saving}
+                            autoComplete="new-password"
+                            helperText="השאר ריק כדי לשמור את הסיסמה הקיימת"
                         />
                     </Grid>
+
                     <Grid item xs={12}>
-                        <Button variant="contained" fullWidth onClick={handleSave}>שמור שינויים</Button>
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            onClick={handleSave}
+                            disabled={saving}
+                        >
+                            {saving ? "שומר..." : "שמור שינויים"}
+                        </Button>
                     </Grid>
                 </Grid>
             </Paper>

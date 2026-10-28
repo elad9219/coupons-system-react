@@ -1,16 +1,29 @@
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Card,
+    CardContent,
+    Typography,
+    Box,
+    IconButton,
+    CardActions,
+    Tooltip
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import ListAltIcon from "@mui/icons-material/ListAlt";
 import { Customer } from "../../../modal/Customer";
 import jwtAxios from "../../../util/JWTaxios";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Card, CardContent, Typography, Box, IconButton, InputAdornment, TextField, CardActions, Tooltip } from "@mui/material";
 import globals from "../../../util/global";
-import notify from '../../../util/notify';
+import notify from "../../../util/notify";
 import { store } from "../../../redux/store";
-import { useState } from "react";
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useNavigate } from "react-router-dom";
 
 interface SingleCustomerProps {
     customer?: Customer;
@@ -19,92 +32,174 @@ interface SingleCustomerProps {
 }
 
 function SingleCustomer(props: SingleCustomerProps): JSX.Element {
-    const [open, setOpen] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const userType = store.getState().authState.userType;
     const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-    if (!props.customer) return <div>No Data</div>;
+    const userType = store.getState().authState.userType;
 
-    const removeCustomer = () => {
-        if (!props.customer) return;
-        jwtAxios.delete(globals.admin.deleteCustomer + props.customer.id)
-            .then(() => {
-                notify.success("הלקוח נמחק");
-                if (props.onDelete) props.onDelete(props.customer!.id);
-            })
-            .catch(() => notify.error("שגיאה במחיקה"));
+    if (!props.customer) {
+        return <div>No Data</div>;
+    }
+
+    const customer = props.customer;
+
+    const removeCustomer = async () => {
+        if (deleting || customer.id === undefined) return;
+
+        setDeleting(true);
+
+        try {
+            await jwtAxios.delete(
+                globals.admin.deleteCustomer + customer.id
+            );
+
+            notify.success("הלקוח נמחק");
+
+            if (props.onDelete) {
+                props.onDelete(customer.id);
+            }
+
+            setOpen(false);
+        } catch (error: any) {
+            notify.error(
+                error.response?.data?.description ||
+                "שגיאה במחיקה"
+            );
+        } finally {
+            setDeleting(false);
+        }
     };
 
     return (
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', boxShadow: 3, borderRadius: 2 }} dir="rtl">
+        <Card
+            sx={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: 3,
+                borderRadius: 2
+            }}
+            dir="rtl"
+        >
             <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" component="div" gutterBottom fontWeight="bold" color="primary">
-                    {props.customer.first_name} {props.customer.last_name}
+                <Typography
+                    variant="h6"
+                    component="div"
+                    gutterBottom
+                    fontWeight="bold"
+                    color="primary"
+                >
+                    {customer.first_name} {customer.last_name}
                 </Typography>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                     {userType === "ADMIN" && (
-                        <Typography color="text.secondary" variant="caption">ID: {props.customer.id}</Typography>
+                        <Typography color="text.secondary" variant="caption">
+                            ID: {customer.id}
+                        </Typography>
                     )}
-                    <Typography variant="body2"><b>אימייל:</b> {props.customer.email}</Typography>
 
-                    <Box display="flex" alignItems="center">
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', ml: 1 }}>סיסמה:</Typography>
-                        <TextField
-                            variant="standard"
-                            type={showPassword ? 'text' : 'password'}
-                            value={props.customer.password}
-                            InputProps={{
-                                disableUnderline: true,
-                                readOnly: true,
-                                style: { fontSize: '0.875rem' },
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton size="small" onClick={() => setShowPassword(!showPassword)}>
-                                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Box>
+                    <Typography variant="body2">
+                        <b>אימייל:</b> {customer.email}
+                    </Typography>
                 </Box>
             </CardContent>
 
-            <CardActions sx={{ p: 2, pt: 0, justifyContent: 'space-between' }}>
+            <CardActions
+                sx={{
+                    p: 2,
+                    pt: 0,
+                    justifyContent: "space-between"
+                }}
+            >
                 {userType === "ADMIN" && (
-                    <Box sx={{ width: '100%', display: 'flex', gap: 1, alignItems: 'center' }}>
-                        {/* Tooltip added: Shows "רשימת קופונים" only on hover */}
+                    <Box
+                        sx={{
+                            width: "100%",
+                            display: "flex",
+                            gap: 1,
+                            alignItems: "center"
+                        }}
+                    >
                         <Tooltip title="רשימת קופונים" arrow placement="top">
-                            <IconButton 
-                                color="info" 
-                                onClick={() => navigate("/customer/customerCoupons", { state: { customerId: props.customer?.id } })}
+                            <IconButton
+                                color="info"
+                                onClick={() => navigate(
+                                    "/customer/customerCoupons",
+                                    {
+                                        state: {
+                                            customerId: customer.id
+                                        }
+                                    }
+                                )}
                             >
                                 <ListAltIcon />
                             </IconButton>
                         </Tooltip>
 
-                        <Button size="small" variant="contained" color="warning" onClick={props.updateCustomer} fullWidth startIcon={<EditIcon/>}>
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="warning"
+                            onClick={props.updateCustomer}
+                            fullWidth
+                            startIcon={<EditIcon />}
+                        >
                             ערוך
                         </Button>
-                        
-                        <IconButton size="small" color="error" onClick={() => setOpen(true)}>
-                            <DeleteIcon/>
+
+                        <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => setOpen(true)}
+                        >
+                            <DeleteIcon />
                         </IconButton>
                     </Box>
                 )}
+
                 {userType === "CUSTOMER" && (
-                    <Button variant="outlined" fullWidth onClick={props.updateCustomer}>עדכון פרטים</Button>
+                    <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={props.updateCustomer}
+                    >
+                        עדכון פרטים
+                    </Button>
                 )}
             </CardActions>
 
-            <Dialog open={open} onClose={() => setOpen(false)} dir="rtl">
+            <Dialog
+                open={open}
+                onClose={() => {
+                    if (!deleting) setOpen(false);
+                }}
+                dir="rtl"
+            >
                 <DialogTitle>מחיקת לקוח</DialogTitle>
-                <DialogContent><DialogContentText>למחוק את {props.customer.first_name}?</DialogContentText></DialogContent>
+
+                <DialogContent>
+                    <DialogContentText>
+                        למחוק את {customer.first_name}?
+                    </DialogContentText>
+                </DialogContent>
+
                 <DialogActions>
-                    <Button onClick={() => setOpen(false)}>ביטול</Button>
-                    <Button onClick={() => { removeCustomer(); setOpen(false); }} color="error">מחק</Button>
+                    <Button
+                        onClick={() => setOpen(false)}
+                        disabled={deleting}
+                    >
+                        ביטול
+                    </Button>
+
+                    <Button
+                        onClick={removeCustomer}
+                        color="error"
+                        disabled={deleting}
+                    >
+                        {deleting ? "מוחק..." : "מחק"}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Card>

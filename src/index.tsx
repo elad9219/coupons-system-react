@@ -1,25 +1,28 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import MainLayout from './Components/mainLayout/mainLayout';
-import { Provider } from 'react-redux';
-import { store } from './redux/store';
-import { BrowserRouter } from 'react-router-dom';
-import { loadToken } from './redux/authState';
-import { ThemeProvider } from '@mui/material/styles'; // Import MUI ThemeProvider
-import myTheme from './util/myTheme'; // Import custom theme
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "@mui/material/styles";
 
-// Load token from sessionStorage instead of localStorage
-const token = sessionStorage.getItem('token');
+import MainLayout from "./Components/mainLayout/mainLayout";
+import { store } from "./redux/store";
+import { loadToken } from "./redux/authState";
+import myTheme from "./util/myTheme";
+import reportWebVitals from "./reportWebVitals";
+
+const token = sessionStorage.getItem("token");
+
 if (token) {
     store.dispatch(loadToken(token));
 }
 
-const root = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
-);
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+    throw new Error("Root element not found");
+}
+
+const root = ReactDOM.createRoot(rootElement);
 
 root.render(
     <React.StrictMode>

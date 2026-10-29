@@ -1,108 +1,188 @@
-import { FormControl, InputLabel, MenuItem, Select, Slider, Grid, Typography, Paper, Container } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+    Alert,
+    Button,
+    Container,
+    FormControl,
+    Grid,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Slider,
+    Typography
+} from "@mui/material";
+
 import { Coupon } from "../../../modal/Coupon";
+import { Customer } from "../../../modal/Customer";
 import { CouponCategory } from "../../../modal/CouponCategory";
-import { store } from "../../../redux/store";
+import { RootState } from "../../../redux/store";
 import globals from "../../../util/global";
 import jwtAxios from "../../../util/JWTaxios";
+import { getHebrewCategory } from "../../../util/categories";
 import SingleCoupon from "../../company/singleCoupon/singleCoupon";
-import "./getCustomerCoupons.css"; // Re-adding CSS import
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 
-// Hebrew Mapping
-const categoryHebrew: Record<string, string> = {
-    "FOOD": "אוכל",
-    "VACATION": "חופשה",
-    "HOTELS": "מלונות",
-    "ELECTRICITY": "חשמל",
-    "RESTAURANT": "מסעדות",
-    "SPA": "ספא",
-    "ATTRACTIONS": "אטרקציות",
-    "CLOTHING": "ביגוד",
-    "BOWLING": "באולינג",
-    "OTHER": "אחר",
-    "ALL": "הכל"
-};
+interface CustomerNavigationState {
+    customerId?: number | string;
+}
 
 function GetCustomerCoupons(): JSX.Element {
-    const [coupons, setCoupons] = useState<Coupon[]>([]);
-    const [maxPrice, setMaxPrice] = useState<number>(10000);
-    const [category, setCategory] = useState<CouponCategory>(CouponCategory.ALL);
     const location = useLocation();
 
+    const userType = useSelector(
+        (state: RootState) => state.authState.userType
+    );
+
+    const navigationState =
+        location.state as CustomerNavigationState | null;
+
+    const customerId = Number(navigationState?.customerId || 0);
+
+    const [coupons, setCoupons] = useState<Coupon[]>([]);
+    const [maxPrice, setMaxPrice] = useState(10000);
+    const [category, setCategory] = useState<CouponCategory>(
+        CouponCategory.ALL
+    );
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [retryCount, setRetryCount] = useState(0);
+
     useEffect(() => {
-        getCoupons();
-    }, [maxPrice, category]);
+        let active = true;
 
-    async function getCouponsByCategoryAndPrice(category: CouponCategory, maxPrice: number): Promise<Coupon[]> {
-        let response;
-        if (category === CouponCategory.ALL) {
-            response = await jwtAxios.get<Coupon[]>(globals.customer.getAllCoupons);
-        } else {
-            response = await jwtAxios.get<Coupon[]>(`${globals.customer.getCouponsByCategory}/${category}`);
-        }
-        return response.data.filter(coupon => coupon.price <= maxPrice);
-    }
+        const loadPurchasedCoupons = async () => {
+            setLoading(true);
+            setErrorMessage("");
 
-    const getCoupons = async () => {
             try {
-            // Logic for Admin viewing a customer's coupons
-            if (store.getState().authState.userType === "ADMIN" && location.state && (location.state as any).customerId) {
-                const { customerId } = location.state as any;
-                const customer = store.getState().customerState.customer.find(item => customerId === item.id);
-                    if (customer && customer.coupons) {
-                    const filtered = customer.coupons.filter(coupon => 
-                        coupon.price <= maxPrice && 
-                        (category === CouponCategory.ALL || coupon.category === category)
-                    );
-                    setCoupons(filtered);
+                let url: string;
+
+                if (userType === "CUSTOMER") {
+                    url = globals.customer.getCustomerDetails;
+                } else if (
+                    userType === "ADMIN" &&
+                    Number.isInteger(customerId) &&
+                    customerId > 0
+                ) {
+                    url =
+                        globals.admin.getOneCustomer + customerId;
                 } else {
-                    setCoupons([]);
+                    throw new Error("Customer access is unavailable");
                 }
-            } 
-            // Logic for Customer viewing his own coupons
-            else if (store.getState().authState.userType === "CUSTOMER") {
-                const data = await getCouponsByCategoryAndPrice(category, maxPrice);
-                setCoupons(data);
-            } else {
+
+                const response = await jwtAxios.get<Customer>(url);
+
+                if (!active) return;
+
+                if (
+                    !response.data ||
+                    (
+                        response.data.coupons != null &&
+                        !Array.isArray(response.data.coupons)
+                    )
+                ) {
+                    throw new Error("Invalid customer response");
+                }
+
+                setCoupons(response.data.coupons || []);
+            } catch {
+                if (!active) return;
+
                 setCoupons([]);
+                setErrorMessage(
+                    "לא ניתן לטעון את הקופונים שנרכשו. נסה שוב."
+                );
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
             }
-        } catch (error) {
-            setCoupons([]);
-        }
-    };
+        };
+
+        void loadPurchasedCoupons();
+
+        return () => {
+            active = false;
+        };
+    }, [userType, customerId, retryCount]);
+
+    const filteredCoupons = useMemo(
+        () => coupons.filter(
+            coupon =>
+                coupon.price <= maxPrice &&
+                (
+                    category === CouponCategory.ALL ||
+                    coupon.category === category
+                )
+        ),
+        [coupons, maxPrice, category]
+    );
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="h4" align="center" gutterBottom fontWeight="bold" color="primary">
-                הקופונים שלי
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }} dir="rtl">
+            <Typography
+                variant="h4"
+                align="center"
+                gutterBottom
+                fontWeight="bold"
+                color="primary"
+            >
+                {userType === "ADMIN"
+                    ? "קופונים של הלקוח"
+                    : "הקופונים שלי"}
             </Typography>
 
-            <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-                <Grid container spacing={4} alignItems="center" justifyContent="center">
+            <Paper
+                elevation={2}
+                sx={{ p: 3, mb: 4, borderRadius: 3 }}
+            >
+                <Grid
+                    container
+                    spacing={4}
+                    alignItems="center"
+                    justifyContent="center"
+                >
                     <Grid item xs={12} md={4}>
-                        <Typography gutterBottom variant="body2">מחיר מקסימלי: ₪{maxPrice}</Typography>
+                        <Typography gutterBottom variant="body2">
+                            מחיר מקסימלי: ₪{maxPrice}
+                        </Typography>
+
                         <Slider
                             value={maxPrice}
                             min={0}
                             max={10000}
                             step={50}
-                            onChange={(_, val) => setMaxPrice(val as number)}
+                            onChange={(_, value) => {
+                                setMaxPrice(value as number);
+                            }}
                             valueLabelDisplay="auto"
-                            sx={{direction: 'ltr'}} // Slider direction fix
+                            sx={{ direction: "ltr" }}
                         />
                     </Grid>
+
                     <Grid item xs={12} md={4}>
                         <FormControl fullWidth size="small">
                             <InputLabel>קטגוריה</InputLabel>
                             <Select
                                 value={category}
                                 label="קטגוריה"
-                                onChange={(e) => setCategory(e.target.value as CouponCategory)}
+                                onChange={event => {
+                                    setCategory(
+                                        event.target.value as CouponCategory
+                                    );
+                                }}
                             >
-                                {Object.values(CouponCategory).map(cat => (
-                                    <MenuItem key={cat} value={cat} dir="rtl">
-                                        {categoryHebrew[cat] || cat}
+                                {Object.values(CouponCategory).map(item => (
+                                    <MenuItem
+                                        key={item}
+                                        value={item}
+                                    >
+                                        {item === CouponCategory.ALL
+                                            ? "הכל"
+                                            : getHebrewCategory(item)}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -111,23 +191,51 @@ function GetCustomerCoupons(): JSX.Element {
                 </Grid>
             </Paper>
 
-            <Grid container spacing={3}>
-                {coupons.map(item => (
-                    <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
-                        <SingleCoupon 
-                            coupon={item} 
-                            updateCoupon={() => {}} 
-                            // FIX: Changed from couponPurchased={true}
-                            isOwned={true} // Tells the card this is "My Coupon" and hides the purchase button
-                        />
-                    </Grid>
-                ))}
-            </Grid>
-            
-            {coupons.length === 0 && (
-                <Typography align="center" sx={{ mt: 4, color: 'gray' }}>
-                    לא נמצאו קופונים.
+            {loading ? (
+                <LoadingSpinner />
+            ) : errorMessage ? (
+                <Alert
+                    severity="error"
+                    action={
+                        <Button
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                setRetryCount(count => count + 1);
+                            }}
+                        >
+                            נסה שוב
+                        </Button>
+                    }
+                >
+                    {errorMessage}
+                </Alert>
+            ) : filteredCoupons.length === 0 ? (
+                <Typography
+                    align="center"
+                    color="text.secondary"
+                    sx={{ mt: 4 }}
+                >
+                    לא נמצאו קופונים שנרכשו התואמים את הסינון.
                 </Typography>
+            ) : (
+                <Grid container spacing={3}>
+                    {filteredCoupons.map(coupon => (
+                        <Grid
+                            item
+                            key={coupon.id}
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            lg={3}
+                        >
+                            <SingleCoupon
+                                coupon={coupon}
+                                isOwned
+                            />
+                        </Grid>
+                    ))}
+                </Grid>
             )}
         </Container>
     );

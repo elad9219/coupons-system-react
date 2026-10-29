@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
     Alert,
@@ -9,6 +10,7 @@ import {
     Grid,
     InputLabel,
     MenuItem,
+    Pagination,
     Paper,
     Select,
     Slider,
@@ -26,6 +28,23 @@ import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import { getHebrewCategory } from "../../../util/categories";
 
+type CatalogSort =
+    | "newest"
+    | "price_asc"
+    | "price_desc"
+    | "title";
+
+interface CatalogResponse {
+    content: Coupon[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+}
+
+const PAGE_SIZE = 12;
+
 function AllCoupons(): JSX.Element {
     const dispatch = useDispatch();
 
@@ -36,9 +55,17 @@ function AllCoupons(): JSX.Element {
     const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [maxPrice, setMaxPrice] = useState(10000);
     const [displayPrice, setDisplayPrice] = useState(10000);
+
     const [category, setCategory] = useState<CouponCategory>(
         CouponCategory.ALL
     );
+
+    const [sort, setSort] = useState<CatalogSort>("newest");
+    const [page, setPage] = useState(0);
+
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
     const [retryCount, setRetryCount] = useState(0);
@@ -46,7 +73,7 @@ function AllCoupons(): JSX.Element {
     useEffect(() => {
         let active = true;
 
-        const loadCoupons = async () => {
+        const loadCatalog = async (): Promise<void> => {
             setLoading(true);
             setErrorMessage("");
 
@@ -59,38 +86,72 @@ function AllCoupons(): JSX.Element {
 
                     if (!active) return;
 
+                    const profile = profileResponse.data;
+
                     if (
-                        !profileResponse.data ||
-                        typeof profileResponse.data.id !== "number"
+                        !profile ||
+                        typeof profile.id !== "number" ||
+                        profile.id <= 0
                     ) {
                         throw new Error("Invalid customer profile");
                     }
 
                     dispatch(
-                        downloadSingleCustomer([
-                            profileResponse.data
-                        ])
+                        downloadSingleCustomer([profile])
                     );
                 }
 
-                const url =
-                    category === CouponCategory.ALL
-                        ? globals.guest.allSystemCoupons
-                        : `${globals.guest.allCouponsByCategory}/${category}`;
-
-                const response = await jwtAxios.get<Coupon[]>(url);
+                const response =
+                    await jwtAxios.get<CatalogResponse>(
+                        globals.guest.catalog,
+                        {
+                            params: {
+                                page,
+                                size: PAGE_SIZE,
+                                category:
+                                    category === CouponCategory.ALL
+                                        ? undefined
+                                        : category,
+                                maxPrice,
+                                sort
+                            }
+                        }
+                    );
 
                 if (!active) return;
 
-                if (!Array.isArray(response.data)) {
-                    throw new Error("Invalid coupons response");
+                const result = response.data;
+
+                if (
+                    !result ||
+                    !Array.isArray(result.content) ||
+                    !Number.isInteger(result.page) ||
+                    !Number.isInteger(result.totalPages) ||
+                    !Number.isInteger(result.totalElements) ||
+                    result.totalPages < 0 ||
+                    result.totalElements < 0
+                ) {
+                    throw new Error("Invalid catalog response");
                 }
 
-                setCoupons(response.data);
+                // Data may have changed since the last page load.
+                if (
+                    result.totalPages > 0 &&
+                    page >= result.totalPages
+                ) {
+                    setPage(result.totalPages - 1);
+                    return;
+                }
+
+                setCoupons(result.content);
+                setTotalPages(result.totalPages);
+                setTotalElements(result.totalElements);
             } catch {
                 if (!active) return;
 
                 setCoupons([]);
+                setTotalPages(0);
+                setTotalElements(0);
                 setErrorMessage(
                     "לא הצלחנו לטעון את הקופונים כרגע. בדוק את החיבור ונסה שוב."
                 );
@@ -101,17 +162,20 @@ function AllCoupons(): JSX.Element {
             }
         };
 
-        void loadCoupons();
+        void loadCatalog();
 
         return () => {
             active = false;
         };
-    }, [category, userType, retryCount, dispatch]);
-
-    const filteredCoupons = useMemo(
-        () => coupons.filter(coupon => coupon.price <= maxPrice),
-        [coupons, maxPrice]
-    );
+    }, [
+        category,
+        maxPrice,
+        sort,
+        page,
+        userType,
+        retryCount,
+        dispatch
+    ]);
 
     const handleSliderChange = (
         _event: Event,
@@ -124,8 +188,17 @@ function AllCoupons(): JSX.Element {
         _event: Event | React.SyntheticEvent,
         newValue: number | number[]
     ) => {
+        setPage(0);
         setMaxPrice(newValue as number);
     };
+
+    const firstResult =
+        totalElements === 0 ? 0 : page * PAGE_SIZE + 1;
+
+    const lastResult = Math.min(
+        (page + 1) * PAGE_SIZE,
+        totalElements
+    );
 
     return (
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }} dir="rtl">
@@ -139,10 +212,13 @@ function AllCoupons(): JSX.Element {
                 כל הקופונים במערכת
             </Typography>
 
-            <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+            <Paper
+                elevation={2}
+                sx={{ p: 3, mb: 3, borderRadius: 3 }}
+            >
                 <Grid
                     container
-                    spacing={6}
+                    spacing={3}
                     alignItems="center"
                     justifyContent="center"
                 >
@@ -153,7 +229,10 @@ function AllCoupons(): JSX.Element {
                             fontWeight="500"
                         >
                             סינון לפי מחיר:{" "}
-                            <Box component="span" color="primary.main">
+                            <Box
+                                component="span"
+                                color="primary.main"
+                            >
                                 ₪{displayPrice}
                             </Box>
                         </Typography>
@@ -167,14 +246,18 @@ function AllCoupons(): JSX.Element {
                                 onChange={handleSliderChange}
                                 onChangeCommitted={handleSliderCommit}
                                 valueLabelDisplay="auto"
-                                sx={{ direction: "ltr", height: 8 }}
+                                sx={{
+                                    direction: "ltr",
+                                    height: 8
+                                }}
                             />
                         </Box>
                     </Grid>
 
-                    <Grid item xs={12} md={4}>
-                        <FormControl fullWidth size="medium">
+                    <Grid item xs={12} sm={6} md={3.5}>
+                        <FormControl fullWidth>
                             <InputLabel>קטגוריה</InputLabel>
+
                             <Select
                                 value={category}
                                 label="קטגוריה"
@@ -182,27 +265,67 @@ function AllCoupons(): JSX.Element {
                                     setCategory(
                                         event.target.value as CouponCategory
                                     );
+                                    setPage(0);
                                 }}
                             >
-                                <MenuItem value={CouponCategory.ALL}>
-                                    הכל
+                                {Object.values(CouponCategory).map(item => (
+                                    <MenuItem
+                                        key={item}
+                                        value={item}
+                                    >
+                                        {item === CouponCategory.ALL
+                                            ? "הכל"
+                                            : getHebrewCategory(item)}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3.5}>
+                        <FormControl fullWidth>
+                            <InputLabel>מיון</InputLabel>
+
+                            <Select
+                                value={sort}
+                                label="מיון"
+                                onChange={event => {
+                                    setSort(
+                                        event.target.value as CatalogSort
+                                    );
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="newest">
+                                    החדשים ביותר
                                 </MenuItem>
 
-                                {Object.values(CouponCategory)
-                                    .filter(item => item !== "ALL")
-                                    .map(item => (
-                                        <MenuItem
-                                            key={item}
-                                            value={item}
-                                        >
-                                            {getHebrewCategory(item)}
-                                        </MenuItem>
-                                    ))}
+                                <MenuItem value="price_asc">
+                                    מהזול ליקר
+                                </MenuItem>
+
+                                <MenuItem value="price_desc">
+                                    מהיקר לזול
+                                </MenuItem>
+
+                                <MenuItem value="title">
+                                    לפי שם
+                                </MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
                 </Grid>
             </Paper>
+
+            {!loading && !errorMessage && totalElements > 0 && (
+                <Typography
+                    color="text.secondary"
+                    sx={{ mb: 2, textAlign: "right" }}
+                >
+                    מציג {firstResult}–{lastResult} מתוך{" "}
+                    {totalElements} קופונים
+                </Typography>
+            )}
 
             {loading ? (
                 <LoadingSpinner />
@@ -225,7 +348,7 @@ function AllCoupons(): JSX.Element {
                         {errorMessage}
                     </Alert>
                 </Box>
-            ) : filteredCoupons.length === 0 ? (
+            ) : coupons.length === 0 ? (
                 <Typography
                     align="center"
                     color="text.secondary"
@@ -234,20 +357,45 @@ function AllCoupons(): JSX.Element {
                     לא נמצאו קופונים התואמים את הסינון.
                 </Typography>
             ) : (
-                <Grid container spacing={3}>
-                    {filteredCoupons.map(coupon => (
-                        <Grid
-                            item
-                            key={coupon.id}
-                            xs={12}
-                            sm={6}
-                            md={4}
-                            lg={3}
+                <>
+                    <Grid container spacing={3}>
+                        {coupons.map(coupon => (
+                            <Grid
+                                item
+                                key={coupon.id}
+                                xs={12}
+                                sm={6}
+                                md={4}
+                                lg={3}
+                            >
+                                <SingleCoupon coupon={coupon} />
+                            </Grid>
+                        ))}
+                    </Grid>
+
+                    {totalPages > 1 && (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                mt: 4,
+                                direction: "ltr"
+                            }}
                         >
-                            <SingleCoupon coupon={coupon} />
-                        </Grid>
-                    ))}
-                </Grid>
+                            <Pagination
+                                count={totalPages}
+                                page={page + 1}
+                                onChange={(_, selectedPage) => {
+                                    setPage(selectedPage - 1);
+                                }}
+                                color="primary"
+                                size="large"
+                                showFirstButton
+                                showLastButton
+                            />
+                        </Box>
+                    )}
+                </>
             )}
         </Container>
     );

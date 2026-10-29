@@ -47,6 +47,7 @@ class DevelopmentGlobals extends Globals {
 
     public guest = {
         allSystemCoupons: `${DevelopmentGlobals.baseUrl}/api/guest/allSystemCoupons`,
+        catalog: `${DevelopmentGlobals.baseUrl}/api/guest/catalog`,
         allCouponsByMaxPrice: `${DevelopmentGlobals.baseUrl}/api/guest/allCouponsByMaxPrice`,
         allCouponsByCategory: `${DevelopmentGlobals.baseUrl}/api/guest/allCouponsByCategory`,
         register: `${DevelopmentGlobals.baseUrl}/api/guest/register`
@@ -102,6 +103,7 @@ class ProductionGlobals extends Globals {
 
     public guest = {
         allSystemCoupons: `${ProductionGlobals.backendUrl}/api/guest/allSystemCoupons`,
+        catalog: `${ProductionGlobals.backendUrl}/api/guest/catalog`,
         allCouponsByCategory: `${ProductionGlobals.backendUrl}/api/guest/allCouponsByCategory`,
         allCouponsByMaxPrice: `${ProductionGlobals.backendUrl}/api/guest/allCouponsByMaxPrice`,
         register: `${ProductionGlobals.backendUrl}/api/guest/register`
@@ -112,7 +114,7 @@ class ProductionGlobals extends Globals {
     };
 }
 
-const globals = process.env.NODE_ENV === 'production'
+const globals = process.env.NODE_ENV === "production"
     ? new ProductionGlobals()
     : new DevelopmentGlobals();
 

@@ -1,7 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+
 import {
     Alert,
     Box,
@@ -13,6 +13,8 @@ import {
     TextField,
     Typography
 } from "@mui/material";
+
+import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 
 import { Customer } from "../../../modal/Customer";
 import jwtAxios from "../../../util/JWTaxios";
@@ -85,21 +87,71 @@ function AddCustomer(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+        <Container
+            maxWidth="sm"
+            dir="rtl"
+            sx={{
+                mt: { xs: 2, md: 4 },
+                mb: 6,
+                px: { xs: 1, sm: 2 }
+            }}
+        >
             <Paper
-                elevation={3}
-                sx={{ p: 4, borderRadius: 2 }}
-                dir="rtl"
+                elevation={0}
+                sx={{
+                    p: { xs: 2.5, sm: 4 },
+                    borderRadius: 4,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    boxShadow: "0 16px 44px rgba(20,38,61,0.07)"
+                }}
             >
-                <Typography
-                    variant="h5"
-                    align="center"
-                    gutterBottom
-                    fontWeight="bold"
-                    color="primary"
+                <Box
+                    sx={{
+                        textAlign: "center",
+                        mb: 3.5
+                    }}
                 >
-                    הוספת לקוח חדש
-                </Typography>
+                    <Box
+                        sx={{
+                            mx: "auto",
+                            mb: 2,
+                            width: 64,
+                            height: 64,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: 3,
+                            bgcolor: "primary.light",
+                            color: "primary.main"
+                        }}
+                    >
+                        <PersonAddAlt1RoundedIcon
+                            sx={{ fontSize: 32 }}
+                        />
+                    </Box>
+
+                    <Typography
+                        component="h1"
+                        variant="h5"
+                        sx={{
+                            fontWeight: 800,
+                            color: "text.primary",
+                            mb: 0.75
+                        }}
+                    >
+                        הוספת לקוח חדש
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            lineHeight: 1.8
+                        }}
+                    >
+                        צור חשבון לקוח לרכישת קופונים ולניהול ההטבות שלו.
+                    </Typography>
+                </Box>
 
                 {errorMessage && (
                     <Alert
@@ -111,17 +163,22 @@ function AddCustomer(): JSX.Element {
                     </Alert>
                 )}
 
-                <form onSubmit={handleSubmit(send)} noValidate>
-                    <Grid container spacing={2}>
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit(send)}
+                    noValidate
+                >
+                    <Grid container spacing={2.5}>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 label="שם פרטי"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.first_name)}
                                 helperText={errors.first_name?.message}
-                                inputProps={{ maxLength: 40 }}
+                                inputProps={{
+                                    maxLength: 40
+                                }}
                                 {...register("first_name", {
                                     required: "יש להזין שם פרטי.",
                                     validate: value =>
@@ -139,11 +196,12 @@ function AddCustomer(): JSX.Element {
                             <TextField
                                 label="שם משפחה"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.last_name)}
                                 helperText={errors.last_name?.message}
-                                inputProps={{ maxLength: 40 }}
+                                inputProps={{
+                                    maxLength: 40
+                                }}
                                 {...register("last_name", {
                                     required: "יש להזין שם משפחה.",
                                     validate: value =>
@@ -162,11 +220,16 @@ function AddCustomer(): JSX.Element {
                                 label="אימייל"
                                 type="email"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.email)}
                                 helperText={errors.email?.message}
-                                inputProps={{ maxLength: 40 }}
+                                inputProps={{
+                                    maxLength: 40,
+                                    dir: "ltr",
+                                    style: {
+                                        textAlign: "right"
+                                    }
+                                }}
                                 {...register("email", {
                                     required: "יש להזין אימייל.",
                                     maxLength: {
@@ -186,10 +249,10 @@ function AddCustomer(): JSX.Element {
                                 label="סיסמה"
                                 type="password"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.password)}
                                 helperText={errors.password?.message}
+                                autoComplete="new-password"
                                 {...register("password", {
                                     required: "יש להזין סיסמה.",
                                     minLength: {
@@ -208,7 +271,12 @@ function AddCustomer(): JSX.Element {
                                 size="large"
                                 disabled={isSubmitting}
                                 aria-busy={isSubmitting}
-                                sx={{ mt: 1 }}
+                                sx={{
+                                    mt: 1,
+                                    minHeight: 50,
+                                    borderRadius: 2.5,
+                                    fontSize: "1rem"
+                                }}
                             >
                                 {isSubmitting ? (
                                     <Box
@@ -231,7 +299,7 @@ function AddCustomer(): JSX.Element {
                             </Button>
                         </Grid>
                     </Grid>
-                </form>
+                </Box>
             </Paper>
         </Container>
     );

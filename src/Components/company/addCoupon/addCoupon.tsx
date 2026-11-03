@@ -1,9 +1,9 @@
-
 import "./addCoupon.css";
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+
 import {
     Alert,
     Box,
@@ -18,10 +18,14 @@ import {
     TextField,
     Typography
 } from "@mui/material";
+
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
+
 import {
     DatePicker,
     LocalizationProvider
 } from "@mui/x-date-pickers";
+
 import AdapterDateFns from "@date-io/date-fns";
 import heLocale from "date-fns/locale/he";
 import { format, isValid } from "date-fns";
@@ -34,11 +38,13 @@ import globals from "../../../util/global";
 import notify from "../../../util/notify";
 import advNotify from "../../../util/notify_advanced";
 import { getApiErrorMessage } from "../../../util/apiError";
+
 import {
     MAX_COUPON_AMOUNT,
     validateCouponAmount,
     validateCouponForm
 } from "../../../util/couponFormValidation";
+
 import { getHebrewCategory } from "../../../util/categories";
 
 function AddCoupon(): JSX.Element {
@@ -124,21 +130,69 @@ function AddCoupon(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+        <Container
+            maxWidth="sm"
+            dir="rtl"
+            sx={{
+                mt: { xs: 2, md: 4 },
+                mb: 6,
+                px: { xs: 1, sm: 2 }
+            }}
+        >
             <Paper
-                elevation={3}
-                sx={{ p: 4, borderRadius: 2 }}
-                dir="rtl"
+                elevation={0}
+                sx={{
+                    p: { xs: 2.5, sm: 4 },
+                    borderRadius: 4,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    boxShadow: "0 16px 44px rgba(20,38,61,0.07)"
+                }}
             >
-                <Typography
-                    variant="h5"
-                    align="center"
-                    gutterBottom
-                    fontWeight="bold"
-                    color="primary"
+                <Box
+                    sx={{
+                        textAlign: "center",
+                        mb: 3.5
+                    }}
                 >
-                    יצירת קופון חדש
-                </Typography>
+                    <Box
+                        sx={{
+                            mx: "auto",
+                            mb: 2,
+                            width: 64,
+                            height: 64,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: 3,
+                            bgcolor: "primary.light",
+                            color: "primary.main"
+                        }}
+                    >
+                        <LocalOfferRoundedIcon
+                            sx={{ fontSize: 32 }}
+                        />
+                    </Box>
+
+                    <Typography
+                        component="h1"
+                        variant="h5"
+                        sx={{
+                            fontWeight: 800,
+                            color: "text.primary",
+                            mb: 0.75
+                        }}
+                    >
+                        יצירת קופון חדש
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.8 }}
+                    >
+                        הוסף הטבה חדשה עם פרטי הקופון, התוקף והמלאי הזמין.
+                    </Typography>
+                </Box>
 
                 {errorMessage && (
                     <Alert
@@ -150,16 +204,25 @@ function AddCoupon(): JSX.Element {
                     </Alert>
                 )}
 
-                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit(onSubmit)}
+                    noValidate
+                >
                     <LocalizationProvider
                         dateAdapter={AdapterDateFns}
                         adapterLocale={heLocale}
                     >
-                        <Grid container spacing={2}>
+                        <Grid container spacing={2.5}>
                             <Grid item xs={12}>
                                 <InputLabel
                                     id="cat-label"
-                                    sx={{ mb: 1 }}
+                                    sx={{
+                                        mb: 1,
+                                        fontSize: "0.875rem",
+                                        fontWeight: 600,
+                                        color: "text.secondary"
+                                    }}
                                 >
                                     קטגוריה
                                 </InputLabel>
@@ -167,7 +230,6 @@ function AddCoupon(): JSX.Element {
                                 <Select
                                     labelId="cat-label"
                                     fullWidth
-                                    size="small"
                                     value={selectedCategory}
                                     disabled={isSubmitting}
                                     onChange={event => {
@@ -177,6 +239,20 @@ function AddCoupon(): JSX.Element {
                                         setErrorMessage("");
                                     }}
                                     displayEmpty
+                                    renderValue={value =>
+                                        value ? (
+                                            getHebrewCategory(value)
+                                        ) : (
+                                            <Box
+                                                component="span"
+                                                sx={{
+                                                    color: "text.secondary"
+                                                }}
+                                            >
+                                                בחר קטגוריה
+                                            </Box>
+                                        )
+                                    }
                                 >
                                     <MenuItem value="" disabled>
                                         בחר קטגוריה
@@ -200,10 +276,8 @@ function AddCoupon(): JSX.Element {
                             <Grid item xs={12}>
                                 <TextField
                                     label="כותרת"
-                                    size="small"
                                     fullWidth
                                     disabled={isSubmitting}
-                                    InputLabelProps={{ shrink: true }}
                                     inputProps={{ maxLength: 25 }}
                                     error={Boolean(errors.title)}
                                     helperText={errors.title?.message}
@@ -223,12 +297,10 @@ function AddCoupon(): JSX.Element {
                             <Grid item xs={12}>
                                 <TextField
                                     label="תיאור"
-                                    size="small"
                                     fullWidth
                                     multiline
                                     rows={3}
                                     disabled={isSubmitting}
-                                    InputLabelProps={{ shrink: true }}
                                     inputProps={{ maxLength: 1024 }}
                                     error={Boolean(errors.description)}
                                     helperText={errors.description?.message}
@@ -258,9 +330,10 @@ function AddCoupon(): JSX.Element {
                                     renderInput={params => (
                                         <TextField
                                             {...params}
-                                            size="small"
                                             fullWidth
-                                            InputLabelProps={{ shrink: true }}
+                                            InputLabelProps={{
+                                                shrink: true
+                                            }}
                                         />
                                     )}
                                 />
@@ -280,9 +353,10 @@ function AddCoupon(): JSX.Element {
                                     renderInput={params => (
                                         <TextField
                                             {...params}
-                                            size="small"
                                             fullWidth
-                                            InputLabelProps={{ shrink: true }}
+                                            InputLabelProps={{
+                                                shrink: true
+                                            }}
                                         />
                                     )}
                                 />
@@ -292,10 +366,8 @@ function AddCoupon(): JSX.Element {
                                 <TextField
                                     type="number"
                                     label="כמות"
-                                    size="small"
                                     fullWidth
                                     disabled={isSubmitting}
-                                    InputLabelProps={{ shrink: true }}
                                     inputProps={{
                                         min: 1,
                                         max: MAX_COUPON_AMOUNT,
@@ -322,10 +394,8 @@ function AddCoupon(): JSX.Element {
                                 <TextField
                                     type="number"
                                     label="מחיר (₪)"
-                                    size="small"
                                     fullWidth
                                     disabled={isSubmitting}
-                                    InputLabelProps={{ shrink: true }}
                                     inputProps={{
                                         min: 0.01,
                                         max: 9999,
@@ -351,11 +421,15 @@ function AddCoupon(): JSX.Element {
                             <Grid item xs={12}>
                                 <TextField
                                     label="קישור לתמונה (לא חובה)"
-                                    size="small"
                                     fullWidth
                                     disabled={isSubmitting}
-                                    InputLabelProps={{ shrink: true }}
-                                    inputProps={{ maxLength: 1024 }}
+                                    inputProps={{
+                                        maxLength: 1024,
+                                        dir: "ltr",
+                                        style: {
+                                            textAlign: "right"
+                                        }
+                                    }}
                                     error={Boolean(errors.image)}
                                     helperText={errors.image?.message}
                                     {...register("image", {
@@ -371,12 +445,16 @@ function AddCoupon(): JSX.Element {
                                 <Button
                                     type="submit"
                                     variant="contained"
-                                    color="primary"
                                     fullWidth
                                     size="large"
                                     disabled={isSubmitting}
                                     aria-busy={isSubmitting}
-                                    sx={{ mt: 2 }}
+                                    sx={{
+                                        mt: 1,
+                                        minHeight: 50,
+                                        borderRadius: 2.5,
+                                        fontSize: "1rem"
+                                    }}
                                 >
                                     {isSubmitting ? (
                                         <Box
@@ -400,7 +478,7 @@ function AddCoupon(): JSX.Element {
                             </Grid>
                         </Grid>
                     </LocalizationProvider>
-                </form>
+                </Box>
             </Paper>
         </Container>
     );

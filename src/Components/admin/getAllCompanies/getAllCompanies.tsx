@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
     Alert,
     Box,
@@ -44,7 +45,9 @@ function GetAllCompanies(): JSX.Element {
                     globals.admin.getAllCompanies
                 );
 
-                if (!active) return;
+                if (!active) {
+                    return;
+                }
 
                 if (!Array.isArray(response.data)) {
                     throw new Error("Invalid companies response");
@@ -52,14 +55,18 @@ function GetAllCompanies(): JSX.Element {
 
                 setCompanies(response.data);
             } catch {
-                if (!active) return;
+                if (!active) {
+                    return;
+                }
 
                 setCompanies([]);
                 setErrorMessage(
                     "לא הצלחנו לטעון את רשימת החברות. נסה שוב."
                 );
             } finally {
-                if (active) setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -83,7 +90,11 @@ function GetAllCompanies(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }} dir="rtl">
+        <Container
+            maxWidth="xl"
+            sx={{ mt: 4, mb: 4 }}
+            dir="rtl"
+        >
             <Typography
                 variant="h4"
                 align="center"
@@ -98,7 +109,11 @@ function GetAllCompanies(): JSX.Element {
                 <Box
                     role="status"
                     aria-label="טוען חברות"
-                    sx={{ display: "flex", justifyContent: "center", py: 6 }}
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        py: 6
+                    }}
                 >
                     <CircularProgress />
                 </Box>
@@ -122,9 +137,13 @@ function GetAllCompanies(): JSX.Element {
                 </Alert>
             ) : companies.length === 0 ? (
                 <Box sx={{ textAlign: "center", py: 6 }}>
-                    <Typography color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                    >
                         אין חברות במערכת כרגע.
                     </Typography>
+
                     <Button
                         variant="contained"
                         onClick={() => navigate("/admin/addCompany")}
@@ -139,13 +158,15 @@ function GetAllCompanies(): JSX.Element {
                             item
                             key={company.id}
                             xs={12}
-                            sm={6}
-                            md={4}
-                            lg={3}
+                            sm={12}
+                            md={6}
+                            lg={4}
                         >
                             <SingleCompany
                                 company={company}
-                                updateCompany={() => handleUpdate(company)}
+                                updateCompany={() =>
+                                    handleUpdate(company)
+                                }
                                 onDelete={handleDelete}
                             />
                         </Grid>

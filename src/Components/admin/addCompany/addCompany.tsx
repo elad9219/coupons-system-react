@@ -1,7 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+
 import {
     Alert,
     Box,
@@ -13,6 +13,8 @@ import {
     TextField,
     Typography
 } from "@mui/material";
+
+import AddBusinessRoundedIcon from "@mui/icons-material/AddBusinessRounded";
 
 import { Company } from "../../../modal/Company";
 import jwtAxios from "../../../util/JWTaxios";
@@ -84,21 +86,71 @@ function AddCompany(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+        <Container
+            maxWidth="sm"
+            dir="rtl"
+            sx={{
+                mt: { xs: 2, md: 4 },
+                mb: 6,
+                px: { xs: 1, sm: 2 }
+            }}
+        >
             <Paper
-                elevation={3}
-                sx={{ p: 4, borderRadius: 2 }}
-                dir="rtl"
+                elevation={0}
+                sx={{
+                    p: { xs: 2.5, sm: 4 },
+                    borderRadius: 4,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    boxShadow: "0 16px 44px rgba(20,38,61,0.07)"
+                }}
             >
-                <Typography
-                    variant="h5"
-                    align="center"
-                    gutterBottom
-                    fontWeight="bold"
-                    color="primary"
+                <Box
+                    sx={{
+                        textAlign: "center",
+                        mb: 3.5
+                    }}
                 >
-                    הוספת חברה חדשה
-                </Typography>
+                    <Box
+                        sx={{
+                            mx: "auto",
+                            mb: 2,
+                            width: 64,
+                            height: 64,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: 3,
+                            bgcolor: "primary.light",
+                            color: "primary.main"
+                        }}
+                    >
+                        <AddBusinessRoundedIcon
+                            sx={{ fontSize: 32 }}
+                        />
+                    </Box>
+
+                    <Typography
+                        component="h1"
+                        variant="h5"
+                        sx={{
+                            fontWeight: 800,
+                            color: "text.primary",
+                            mb: 0.75
+                        }}
+                    >
+                        הוספת חברה חדשה
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            lineHeight: 1.8
+                        }}
+                    >
+                        צור חשבון חברה לניהול ופרסום קופונים במערכת.
+                    </Typography>
+                </Box>
 
                 {errorMessage && (
                     <Alert
@@ -110,17 +162,22 @@ function AddCompany(): JSX.Element {
                     </Alert>
                 )}
 
-                <form onSubmit={handleSubmit(send)} noValidate>
-                    <Grid container spacing={2}>
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit(send)}
+                    noValidate
+                >
+                    <Grid container spacing={2.5}>
                         <Grid item xs={12}>
                             <TextField
                                 label="שם חברה"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.name)}
                                 helperText={errors.name?.message}
-                                inputProps={{ maxLength: 40 }}
+                                inputProps={{
+                                    maxLength: 40
+                                }}
                                 {...register("name", {
                                     required: "יש להזין שם חברה.",
                                     validate: value =>
@@ -139,11 +196,16 @@ function AddCompany(): JSX.Element {
                                 label="אימייל"
                                 type="email"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.email)}
                                 helperText={errors.email?.message}
-                                inputProps={{ maxLength: 40 }}
+                                inputProps={{
+                                    maxLength: 40,
+                                    dir: "ltr",
+                                    style: {
+                                        textAlign: "right"
+                                    }
+                                }}
                                 {...register("email", {
                                     required: "יש להזין אימייל.",
                                     maxLength: {
@@ -163,10 +225,10 @@ function AddCompany(): JSX.Element {
                                 label="סיסמה"
                                 type="password"
                                 fullWidth
-                                size="small"
                                 disabled={isSubmitting}
                                 error={Boolean(errors.password)}
                                 helperText={errors.password?.message}
+                                autoComplete="new-password"
                                 {...register("password", {
                                     required: "יש להזין סיסמה.",
                                     minLength: {
@@ -185,7 +247,12 @@ function AddCompany(): JSX.Element {
                                 size="large"
                                 disabled={isSubmitting}
                                 aria-busy={isSubmitting}
-                                sx={{ mt: 1 }}
+                                sx={{
+                                    mt: 1,
+                                    minHeight: 50,
+                                    borderRadius: 2.5,
+                                    fontSize: "1rem"
+                                }}
                             >
                                 {isSubmitting ? (
                                     <Box
@@ -208,7 +275,7 @@ function AddCompany(): JSX.Element {
                             </Button>
                         </Grid>
                     </Grid>
-                </form>
+                </Box>
             </Paper>
         </Container>
     );

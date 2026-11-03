@@ -1,28 +1,36 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
+    Avatar,
+    Box,
     Button,
+    Card,
+    CardActions,
+    CardContent,
+    Chip,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
-    Card,
-    CardContent,
-    Typography,
-    Box,
     IconButton,
-    CardActions,
-    Tooltip
+    Tooltip,
+    Typography
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import ListAltIcon from "@mui/icons-material/ListAlt";
+
+import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import ListAltRoundedIcon from "@mui/icons-material/ListAltRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
+
 import { Company } from "../../../modal/Company";
 import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 import notify from "../../../util/notify";
+import { getApiErrorMessage } from "../../../util/apiError";
 import { store } from "../../../redux/store";
 
 interface SingleCompanyProps {
@@ -31,21 +39,26 @@ interface SingleCompanyProps {
     onDelete?: (id: number) => void;
 }
 
-function SingleCompany(props: SingleCompanyProps): JSX.Element {
+function SingleCompany({
+    company,
+    updateCompany,
+    onDelete
+}: SingleCompanyProps): JSX.Element {
     const navigate = useNavigate();
+
     const [open, setOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
     const userType = store.getState().authState.userType;
 
-    if (!props.company) {
-        return <div>No Data</div>;
+    if (!company) {
+        return <Box />;
     }
 
-    const company = props.company;
-
-    const removeCompany = async () => {
-        if (deleting || company.id === undefined) return;
+    const removeCompany = async (): Promise<void> => {
+        if (deleting || company.id === undefined) {
+            return;
+        }
 
         setDeleting(true);
 
@@ -55,16 +68,14 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
             );
 
             notify.success("החברה נמחקה בהצלחה");
-
-            if (props.onDelete) {
-                props.onDelete(company.id);
-            }
-
+            onDelete?.(company.id);
             setOpen(false);
-        } catch (error: any) {
+        } catch (error) {
             notify.error(
-                error.response?.data?.description ||
-                "שגיאה במחיקה"
+                getApiErrorMessage(
+                    error,
+                    "לא הצלחנו למחוק את החברה."
+                )
             );
         } finally {
             setDeleting(false);
@@ -73,89 +84,196 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
 
     return (
         <Card
+            dir="rtl"
+            elevation={0}
             sx={{
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                boxShadow: 3,
-                borderRadius: 2
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 3,
+                overflow: "hidden",
+                boxShadow: "0 5px 22px rgba(20,38,61,0.045)",
+                transition: "box-shadow 0.2s, transform 0.2s",
+                "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 30px rgba(20,38,61,0.09)"
+                }
             }}
-            dir="rtl"
         >
-            <CardContent sx={{ flexGrow: 1 }}>
-                <Typography
-                    variant="h6"
-                    component="div"
-                    gutterBottom
-                    fontWeight="bold"
-                    color="primary"
+            <CardContent
+                sx={{
+                    p: 2.5,
+                    pb: 2,
+                    flexGrow: 1
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 1.5,
+                        mb: 2.5
+                    }}
                 >
-                    {company.name}
-                </Typography>
+                    <Avatar
+                        sx={{
+                            width: 46,
+                            height: 46,
+                            bgcolor: "#EAF0FF",
+                            color: "primary.main",
+                            borderRadius: 2.5
+                        }}
+                    >
+                        <StorefrontRoundedIcon />
+                    </Avatar>
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    {userType === "ADMIN" && (
-                        <Typography color="text.secondary" variant="caption">
-                            ID: {company.id}
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontSize: "1.05rem",
+                                fontWeight: 800,
+                                color: "text.primary",
+                                lineHeight: 1.35,
+                                overflowWrap: "anywhere"
+                            }}
+                        >
+                            {company.name}
                         </Typography>
-                    )}
 
-                    <Typography variant="body2">
-                        <b>אימייל:</b> {company.email}
-                    </Typography>
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                        >
+                            חשבון חברה
+                        </Typography>
+                    </Box>
+
+                    {userType === "ADMIN" && (
+                        <Chip
+                            size="small"
+                            label={`#${company.id}`}
+                            sx={{
+                                flexShrink: 0,
+                                color: "text.secondary",
+                                bgcolor: "#F2F5FA",
+                                fontWeight: 700
+                            }}
+                        />
+                    )}
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 1,
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: "#F7F9FC",
+                        minWidth: 0
+                    }}
+                >
+                    <MailOutlineRoundedIcon
+                        sx={{
+                            fontSize: 19,
+                            color: "text.secondary",
+                            mt: 0.2,
+                            flexShrink: 0
+                        }}
+                    />
+
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block", mb: 0.4 }}
+                        >
+                            כתובת אימייל
+                        </Typography>
+
+                        <Typography
+                            variant="body2"
+                            dir="ltr"
+                            sx={{
+                                color: "text.primary",
+                                textAlign: "right",
+                                overflowWrap: "anywhere",
+                                fontSize: "0.86rem"
+                            }}
+                        >
+                            {company.email}
+                        </Typography>
+                    </Box>
                 </Box>
             </CardContent>
 
             <CardActions
                 sx={{
-                    p: 2,
-                    pt: 0,
-                    justifyContent: "space-between"
+                    px: 2.5,
+                    pb: 2.5,
+                    pt: 0.5,
+                    gap: 1
                 }}
             >
                 {userType === "ADMIN" && (
                     <Box
                         sx={{
-                            width: "100%",
                             display: "flex",
-                            gap: 1,
-                            alignItems: "center"
+                            alignItems: "center",
+                            width: "100%",
+                            gap: 1
                         }}
                     >
-                        <Tooltip title="רשימת קופונים" arrow placement="top">
+                        <Button
+                            variant="contained"
+                            startIcon={<EditOutlinedIcon />}
+                            onClick={updateCompany}
+                            sx={{ flexGrow: 1 }}
+                        >
+                            עריכת פרטים
+                        </Button>
+
+                        <Tooltip title="הצגת קופונים">
                             <IconButton
-                                color="info"
-                                onClick={() => navigate(
-                                    "/company/allCoupons",
-                                    {
-                                        state: {
-                                            companyId: company.id
+                                aria-label="הצג קופונים של החברה"
+                                onClick={() => {
+                                    navigate(
+                                        "/company/allCoupons",
+                                        {
+                                            state: {
+                                                companyId: company.id
+                                            }
                                         }
-                                    }
-                                )}
+                                    );
+                                }}
+                                sx={{
+                                    color: "primary.main",
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    borderRadius: 2
+                                }}
                             >
-                                <ListAltIcon />
+                                <ListAltRoundedIcon />
                             </IconButton>
                         </Tooltip>
 
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="warning"
-                            onClick={props.updateCompany}
-                            fullWidth
-                            startIcon={<EditIcon />}
-                        >
-                            ערוך
-                        </Button>
-
-                        <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => setOpen(true)}
-                        >
-                            <DeleteIcon />
-                        </IconButton>
+                        <Tooltip title="מחיקת חברה">
+                            <IconButton
+                                aria-label="מחק חברה"
+                                color="error"
+                                onClick={() => setOpen(true)}
+                                sx={{
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    borderRadius: 2
+                                }}
+                            >
+                                <DeleteOutlineRoundedIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                 )}
 
@@ -163,7 +281,8 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
                     <Button
                         variant="outlined"
                         fullWidth
-                        onClick={props.updateCompany}
+                        startIcon={<EditOutlinedIcon />}
+                        onClick={updateCompany}
                     >
                         עדכון פרטים
                     </Button>
@@ -173,47 +292,49 @@ function SingleCompany(props: SingleCompanyProps): JSX.Element {
             <Dialog
                 open={open}
                 onClose={() => {
-                    if (!deleting) setOpen(false);
+                    if (!deleting) {
+                        setOpen(false);
+                    }
                 }}
                 dir="rtl"
+                fullWidth
+                maxWidth="xs"
             >
-                <DialogTitle
-                    sx={{
-                        fontWeight: "bold",
-                        color: "error.main"
-                    }}
-                >
-                    מחיקת חברה - אזהרה
+                <DialogTitle sx={{ fontWeight: 800 }}>
+                    מחיקת חברה
                 </DialogTitle>
 
                 <DialogContent>
                     <DialogContentText>
                         האם אתה בטוח שברצונך למחוק את חברת{" "}
-                        <b>{company.name}</b>?
-                        <br />
-                        <br />
-                        <span style={{ color: "red", fontWeight: "bold" }}>
-                            שים לב:
-                        </span>{" "}
-                        פעולה זו תמחק לצמיתות את החברה ואת{" "}
-                        <b>כל הקופונים</b> שיצרה, גם אם נרכשו על ידי לקוחות.
+                        <strong>{company.name}</strong>?
                     </DialogContentText>
+
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mt: 2,
+                            color: "error.main",
+                            fontWeight: 700
+                        }}
+                    >
+                        פעולה זו תמחק לצמיתות את החברה ואת
+                        כל הקופונים שיצרה, גם אם נרכשו.
+                    </Typography>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 3, gap: 3 }}>
+                <DialogActions sx={{ p: 2.5, gap: 1 }}>
                     <Button
                         onClick={() => setOpen(false)}
-                        variant="outlined"
-                        color="inherit"
                         disabled={deleting}
                     >
                         ביטול
                     </Button>
 
                     <Button
-                        onClick={removeCompany}
-                        color="error"
                         variant="contained"
+                        color="error"
+                        onClick={removeCompany}
                         disabled={deleting}
                     >
                         {deleting ? "מוחק..." : "אשר ומחק"}

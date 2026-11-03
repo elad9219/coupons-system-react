@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 import {
     Alert,
     Box,
     Button,
     CssBaseline,
-    Grid
+    Drawer
 } from "@mui/material";
 
 import MyHeader from "./myHeader/myHeader";
@@ -21,17 +22,21 @@ import MenuRouting from "../routing/MenuRouting/MenuRouting";
 import { store, RootState } from "../../redux/store";
 import jwtAxios from "../../util/JWTaxios";
 import globals from "../../util/global";
+
 import {
     clearStoredSession,
     getSessionClaims,
     getValidStoredToken
 } from "../../util/session";
+
 import {
     downloadSingleCustomer
 } from "../../redux/customerState";
+
 import {
     downloadSingleCompany
 } from "../../redux/companyState";
+
 import {
     setUserId,
     setUserName,
@@ -57,6 +62,7 @@ function MainLayout(): JSX.Element {
         (state: RootState) => state.authState.userType
     );
 
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [restoreError, setRestoreError] = useState("");
     const [restoreAttempt, setRestoreAttempt] = useState(0);
 
@@ -65,11 +71,14 @@ function MainLayout(): JSX.Element {
             "lastPath",
             location.pathname
         );
+
+        setMobileMenuOpen(false);
     }, [location.pathname]);
 
     useEffect(() => {
         const onSessionExpired = () => {
             setRestoreError("");
+            setMobileMenuOpen(false);
             navigate("/login");
         };
 
@@ -244,60 +253,116 @@ function MainLayout(): JSX.Element {
 
     return (
         <Box
+            dir="rtl"
             sx={{
+                minHeight: "100vh",
                 display: "flex",
                 flexDirection: "column",
-                minHeight: "100vh"
+                bgcolor: "background.default"
             }}
-            dir="rtl"
         >
             <CssBaseline />
 
-            <Box component="header" sx={{ zIndex: 1200 }}>
-                <MyHeader />
-            </Box>
-
-            <Grid
-                container
+            <Box
+                component="header"
                 sx={{
-                    flexGrow: 1,
-                    marginTop: "20px"
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1200
                 }}
             >
-                {userType && (
-                    <Grid
-                        item
-                        xs={12}
-                        md={2}
-                        sx={{
-                            borderLeft: "1px solid #e0e0e0",
-                            bgcolor: "white",
-                            minHeight: { md: "80vh" }
-                        }}
-                    >
-                        <Menu />
-                    </Grid>
+                <MyHeader
+                    showMenu={Boolean(userType)}
+                    onMenuOpen={() => setMobileMenuOpen(true)}
+                />
+            </Box>
+
+            <Box
+                sx={{
+                    display: "flex",
+                    flexGrow: 1,
+                    minWidth: 0,
+                    width: "100%"
+                }}
+            >
+                {Boolean(userType) && (
+                    <>
+                        <Box
+                            component="aside"
+                            sx={{
+                                display: {
+                                    xs: "none",
+                                    md: "block"
+                                },
+                                width: 258,
+                                flexShrink: 0,
+                                bgcolor: "#FFFFFF",
+                                borderLeft: "1px solid",
+                                borderColor: "divider"
+                            }}
+                        >
+                            <Menu />
+                        </Box>
+
+                        <Drawer
+                            anchor="right"
+                            open={mobileMenuOpen}
+                            onClose={() => setMobileMenuOpen(false)}
+                            ModalProps={{
+                                keepMounted: true
+                            }}
+                            PaperProps={{
+                                sx: {
+                                    width: "min(320px, 86vw)",
+                                    bgcolor: "#FFFFFF"
+                                }
+                            }}
+                            sx={{
+                                display: {
+                                    xs: "block",
+                                    md: "none"
+                                }
+                            }}
+                        >
+                            <Menu
+                                onNavigate={() =>
+                                    setMobileMenuOpen(false)
+                                }
+                            />
+                        </Drawer>
+                    </>
                 )}
 
-                <Grid
-                    item
-                    xs={12}
-                    md={userType ? 10 : 12}
+                <Box
                     component="main"
-                    sx={{ p: 3 }}
+                    sx={{
+                        flexGrow: 1,
+                        minWidth: 0,
+                        maxWidth: "100%",
+                        px: {
+                            xs: 1.5,
+                            sm: 2.5,
+                            md: 3
+                        },
+                        pb: 5
+                    }}
                 >
                     {restoreError && (
                         <Alert
                             severity="warning"
                             role="alert"
-                            sx={{ mb: 3 }}
+                            sx={{
+                                mt: 3,
+                                maxWidth: 900,
+                                mx: "auto"
+                            }}
                             action={
                                 <Button
                                     color="inherit"
                                     size="small"
                                     onClick={() => {
                                         setRestoreAttempt(
-                                            attempt => attempt + 1
+                                            previous => previous + 1
                                         );
                                     }}
                                 >
@@ -310,10 +375,10 @@ function MainLayout(): JSX.Element {
                     )}
 
                     <MenuRouting />
-                </Grid>
-            </Grid>
+                </Box>
+            </Box>
 
-            <Box component="footer" sx={{ mt: "auto" }}>
+            <Box component="footer">
                 <MyFooter />
             </Box>
         </Box>

@@ -3,6 +3,7 @@ import "./getAllCustomers.css";
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
     Alert,
     Box,
@@ -46,7 +47,9 @@ function GetAllCustomers(): JSX.Element {
                     globals.admin.getAllCustomers
                 );
 
-                if (!active) return;
+                if (!active) {
+                    return;
+                }
 
                 if (!Array.isArray(response.data)) {
                     throw new Error("Invalid customers response");
@@ -54,14 +57,18 @@ function GetAllCustomers(): JSX.Element {
 
                 setCustomers(response.data);
             } catch {
-                if (!active) return;
+                if (!active) {
+                    return;
+                }
 
                 setCustomers([]);
                 setErrorMessage(
                     "לא הצלחנו לטעון את רשימת הלקוחות. נסה שוב."
                 );
             } finally {
-                if (active) setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -85,7 +92,11 @@ function GetAllCustomers(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }} dir="rtl">
+        <Container
+            maxWidth="xl"
+            sx={{ mt: 4, mb: 4 }}
+            dir="rtl"
+        >
             <Typography
                 variant="h4"
                 align="center"
@@ -100,7 +111,11 @@ function GetAllCustomers(): JSX.Element {
                 <Box
                     role="status"
                     aria-label="טוען לקוחות"
-                    sx={{ display: "flex", justifyContent: "center", py: 6 }}
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        py: 6
+                    }}
                 >
                     <CircularProgress />
                 </Box>
@@ -124,7 +139,10 @@ function GetAllCustomers(): JSX.Element {
                 </Alert>
             ) : customers.length === 0 ? (
                 <Box sx={{ textAlign: "center", py: 6 }}>
-                    <Typography color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography
+                        color="text.secondary"
+                        sx={{ mb: 2 }}
+                    >
                         אין לקוחות במערכת כרגע.
                     </Typography>
                     <Button
@@ -141,13 +159,15 @@ function GetAllCustomers(): JSX.Element {
                             item
                             key={customer.id}
                             xs={12}
-                            sm={6}
-                            md={4}
-                            lg={3}
+                            sm={12}
+                            md={6}
+                            lg={4}
                         >
                             <SingleCustomer
                                 customer={customer}
-                                updateCustomer={() => handleUpdate(customer)}
+                                updateCustomer={() =>
+                                    handleUpdate(customer)
+                                }
                                 onDelete={handleDelete}
                             />
                         </Grid>

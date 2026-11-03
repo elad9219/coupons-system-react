@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -56,7 +55,6 @@ const priceFormatter = new Intl.NumberFormat("he-IL", {
 
 function getTodayInIsrael(): string {
     const parts = israelDateFormatter.formatToParts(new Date());
-
     const year = parts.find(part => part.type === "year")?.value;
     const month = parts.find(part => part.type === "month")?.value;
     const day = parts.find(part => part.type === "day")?.value;
@@ -118,11 +116,9 @@ function SingleCoupon({
     const userType = useSelector(
         (state: RootState) => state.authState.userType
     );
-
     const userId = useSelector(
         (state: RootState) => state.authState.id
     );
-
     const customer = useSelector(
         (state: RootState) => state.customerState.customer[0]
     );
@@ -199,7 +195,6 @@ function SingleCoupon({
             userType !== "CUSTOMER"
         ) {
             return;
-
         }
 
         purchaseInProgress.current = true;
@@ -224,10 +219,7 @@ function SingleCoupon({
     };
 
     const removeCoupon = async (): Promise<void> => {
-        if (
-            deletionInProgress.current ||
-            !isCompanyOwner
-        ) {
+        if (deletionInProgress.current || !isCompanyOwner) {
             return;
         }
 
@@ -267,7 +259,7 @@ function SingleCoupon({
         ? "פג תוקף"
         : isNotStarted
             ? "טרם התחיל"
-            : isOutOfStock
+            : isOutOfStock && !isOwned
                 ? "אזל המלאי"
                 : "";
 
@@ -344,14 +336,14 @@ function SingleCoupon({
                                 borderRadius: "24px",
                                 bgcolor: "rgba(255,255,255,0.8)",
                                 color: "primary.main",
-                                boxShadow:
-                                    "0 8px 24px rgba(20,38,61,0.06)"
+                                boxShadow: "0 8px 24px rgba(20,38,61,0.06)"
                             }}
                         >
                             <LocalOfferOutlinedIcon
                                 sx={{ fontSize: 39 }}
                             />
                         </Box>
+
                         <Typography
                             variant="caption"
                             sx={{
@@ -380,13 +372,12 @@ function SingleCoupon({
                             top: 14,
                             right: 14,
                             fontWeight: 800,
-                            boxShadow:
-                                "0 4px 12px rgba(0,0,0,0.12)"
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.12)"
                         }}
                     />
                 )}
 
-                {!couponStatus && isPurchasedByCustomer && (
+                {!isOwned && !couponStatus && isPurchasedByCustomer && (
                     <Chip
                         size="small"
                         label="כבר נרכש"
@@ -524,88 +515,90 @@ function SingleCoupon({
                 </Box>
             </CardContent>
 
-            <CardActions
-                sx={{
-                    display: "flex",
-                    gap: 1,
-                    px: 2.5,
-                    pb: 2.5,
-                    pt: 2
-                }}
-            >
-                {isCompanyOwner && (
-                    <>
-                        <Button
-                            variant="outlined"
-                            startIcon={<EditOutlinedIcon />}
-                            onClick={goToUpdate}
-                            fullWidth
-                            sx={{ flexGrow: 1 }}
-                        >
-                            עדכן
-                        </Button>
+            {!isOwned && (
+                <CardActions
+                    sx={{
+                        display: "flex",
+                        gap: 1,
+                        px: 2.5,
+                        pb: 2.5,
+                        pt: 2
+                    }}
+                >
+                    {isCompanyOwner && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                startIcon={<EditOutlinedIcon />}
+                                onClick={goToUpdate}
+                                fullWidth
+                                sx={{ flexGrow: 1 }}
+                            >
+                                עדכן
+                            </Button>
 
-                        <IconButton
-                            color="error"
-                            aria-label="מחק קופון"
-                            disabled={isDeleting}
-                            onClick={() => setOpenDelete(true)}
+                            <IconButton
+                                color="error"
+                                aria-label="מחק קופון"
+                                disabled={isDeleting}
+                                onClick={() => setOpenDelete(true)}
+                                sx={{
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    borderRadius: 2.5
+                                }}
+                            >
+                                <DeleteOutlineRoundedIcon />
+                            </IconButton>
+                        </>
+                    )}
+
+                    {(userType === "CUSTOMER" || !userType) && (
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            onClick={confirmPurchase}
+                            disabled={
+                                Boolean(purchaseUnavailable) ||
+                                isPurchasing
+                            }
+                            startIcon={
+                                !purchaseUnavailable
+                                    ? <ShoppingBagOutlinedIcon />
+                                    : undefined
+                            }
+                            color={
+                                isPurchasedByCustomer
+                                    ? "success"
+                                    : "primary"
+                            }
                             sx={{
-                                border: "1px solid",
-                                borderColor: "divider",
-                                borderRadius: 2.5
+                                minHeight: 44,
+                                fontWeight: 800
                             }}
                         >
-                            <DeleteOutlineRoundedIcon />
-                        </IconButton>
-                    </>
-                )}
-
-                {(userType === "CUSTOMER" || !userType) && (
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={confirmPurchase}
-                        disabled={
-                            Boolean(purchaseUnavailable) ||
-                            isPurchasing
-                        }
-                        startIcon={
-                            !purchaseUnavailable
-                                ? <ShoppingBagOutlinedIcon />
-                                : undefined
-                        }
-                        color={
-                            isPurchasedByCustomer
-                                ? "success"
-                                : "primary"
-                        }
-                        sx={{
-                            minHeight: 44,
-                            fontWeight: 800
-                        }}
-                    >
-                        {isPurchasedByCustomer
-                            ? "נרכש"
-                            : isExpired
-                                ? "פג תוקף"
-                                : isNotStarted
-                                    ? "טרם התחיל"
-                                    : isOutOfStock
-                                        ? "אזל המלאי"
-                                        : "רכישה"}
-                    </Button>
-                )}
-
-                {isExpired &&
-                    !isCompanyOwner &&
-                    userType !== "CUSTOMER" &&
-                    Boolean(userType) && (
-                        <Button fullWidth disabled>
-                            לא זמין לרכישה
+                            {isPurchasedByCustomer
+                                ? "נרכש"
+                                : isExpired
+                                    ? "פג תוקף"
+                                    : isNotStarted
+                                        ? "טרם התחיל"
+                                        : isOutOfStock
+                                            ? "אזל המלאי"
+                                            : "רכישה"}
                         </Button>
                     )}
-            </CardActions>
+
+                    {isExpired &&
+                        !isCompanyOwner &&
+                        userType !== "CUSTOMER" &&
+                        Boolean(userType) && (
+                            <Button fullWidth disabled>
+                                לא זמין לרכישה
+                            </Button>
+                        )}
+                </CardActions>
+            )}
 
             <Dialog
                 open={openDelete}

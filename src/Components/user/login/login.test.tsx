@@ -62,8 +62,19 @@ function createToken(role: string): string {
 
 function fillCredentials(
     email = "kobi@gmail.com",
-    password = "1234"
+    password = "1234",
+    selectRole = true
 ): void {
+    if (selectRole) {
+        fireEvent.mouseDown(screen.getByRole("combobox"));
+        fireEvent.click(
+            screen.getByRole("option", {
+                name: "לקוח",
+                exact: true
+            })
+        );
+    }
+
     fireEvent.change(screen.getByLabelText("מייל"), {
         target: { value: email }
     });
@@ -85,6 +96,77 @@ beforeEach(() => {
 });
 
 describe("Login", () => {
+    test("starts without a selected role or demo account", () => {
+        render(<Login />);
+
+        expect(screen.getByLabelText("מייל")).toHaveValue("");
+        expect(screen.getByLabelText("סיסמה")).toHaveValue("");
+        expect(screen.getByRole("combobox"))
+            .not.toHaveTextContent("לקוח");
+
+        for (const name of ["אדמין", "חברה", "לקוח"]) {
+            expect(
+                screen.getByRole("button", { name, exact: true })
+            ).toHaveAttribute("aria-pressed", "false");
+        }
+    });
+
+    test("requires an explicit role before sending a manual login", async () => {
+        render(<Login />);
+
+        fillCredentials("kobi@gmail.com", "1234", false);
+        submitLogin();
+
+        expect(await screen.findByRole("alert"))
+            .toHaveTextContent("יש לבחור סוג משתמש.");
+
+        expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    test("manual role selection does not select a demo account", () => {
+        render(<Login />);
+
+        fireEvent.mouseDown(screen.getByRole("combobox"));
+        fireEvent.click(
+            screen.getByRole("option", {
+                name: "חברה",
+                exact: true
+            })
+        );
+
+        expect(screen.getByLabelText("מייל")).toHaveValue("");
+        expect(screen.getByLabelText("סיסמה")).toHaveValue("");
+
+        expect(
+            screen.getByRole("button", {
+                name: "חברה",
+                exact: true
+            })
+        ).toHaveAttribute("aria-pressed", "false");
+    });
+
+    test("clears the demo indicator when its credentials are edited", () => {
+        render(<Login />);
+
+        const demoButton = screen.getByRole("button", {
+            name: "חברה",
+            exact: true
+        });
+
+        fireEvent.click(demoButton);
+
+        expect(demoButton).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByLabelText("מייל"))
+            .toHaveValue("sony@contact.com");
+        expect(screen.getByLabelText("סיסמה")).toHaveValue("1234");
+
+        fireEvent.change(screen.getByLabelText("מייל"), {
+            target: { value: "another@example.com" }
+        });
+
+        expect(demoButton).toHaveAttribute("aria-pressed", "false");
+    });
+
     test("logs in as administrator without requesting a profile", async () => {
         const token = createToken("ADMIN");
 
@@ -93,11 +175,9 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fireEvent.click(
             screen.getByRole("button", { name: "אדמין" })
         );
-
         submitLogin();
 
         await waitFor(() => {
@@ -140,11 +220,9 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fireEvent.click(
             screen.getByRole("button", { name: "חברה" })
         );
-
         submitLogin();
 
         await waitFor(() => {
@@ -189,12 +267,9 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
-        // The demo button fills the required email and password fields.
         fireEvent.click(
             screen.getByRole("button", { name: "לקוח" })
         );
-
         submitLogin();
 
         await waitFor(() => {
@@ -234,7 +309,6 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fillCredentials();
         submitLogin();
 
@@ -256,31 +330,25 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fillCredentials();
         submitLogin();
 
-        expect(
-            await screen.findByRole("alert")
-        ).toHaveTextContent("לא ניתן להתחבר לשרת כרגע");
+        expect(await screen.findByRole("alert"))
+            .toHaveTextContent("לא ניתן להתחבר לשרת כרגע");
 
         expect(mockPost).toHaveBeenCalledTimes(1);
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     test("rejects a login response without an authorization token", async () => {
-        mockPost.mockResolvedValue({
-            headers: {}
-        });
+        mockPost.mockResolvedValue({ headers: {} });
 
         render(<Login />);
-
         fillCredentials();
         submitLogin();
 
-        expect(
-            await screen.findByRole("alert")
-        ).toHaveTextContent("טוקן התחברות לא תקין");
+        expect(await screen.findByRole("alert"))
+            .toHaveTextContent("טוקן התחברות לא תקין");
 
         expect(sessionStorage.getItem("token")).toBeNull();
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -294,13 +362,11 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fillCredentials();
         submitLogin();
 
-        expect(
-            await screen.findByRole("alert")
-        ).toHaveTextContent("טוקן התחברות לא תקין");
+        expect(await screen.findByRole("alert"))
+            .toHaveTextContent("טוקן התחברות לא תקין");
 
         expect(mockGet).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -315,22 +381,16 @@ describe("Login", () => {
         mockPost.mockResolvedValue({
             headers: { authorization: newToken }
         });
-
-        mockGet.mockRejectedValue(
-            new Error("Network error")
-        );
+        mockGet.mockRejectedValue(new Error("Network error"));
 
         render(<Login />);
-
         fireEvent.click(
             screen.getByRole("button", { name: "חברה" })
         );
-
         submitLogin();
 
-        expect(
-            await screen.findByRole("alert")
-        ).toHaveTextContent("לא הצלחנו לטעון את פרטי החשבון");
+        expect(await screen.findByRole("alert"))
+            .toHaveTextContent("לא הצלחנו לטעון את פרטי החשבון");
 
         expect(sessionStorage.getItem("token")).toBe(previousToken);
         expect(mockNavigate).not.toHaveBeenCalled();
@@ -352,11 +412,11 @@ describe("Login", () => {
     test("prevents duplicate submissions while login is pending", async () => {
         let resolveLogin!: (response: any) => void;
 
-        const pendingLogin = new Promise<any>(resolve => {
-            resolveLogin = resolve;
-        });
-
-        mockPost.mockReturnValue(pendingLogin);
+        mockPost.mockReturnValue(
+            new Promise<any>(resolve => {
+                resolveLogin = resolve;
+            })
+        );
 
         mockGet.mockResolvedValue({
             data: {
@@ -366,7 +426,6 @@ describe("Login", () => {
         });
 
         render(<Login />);
-
         fillCredentials();
 
         const form = screen

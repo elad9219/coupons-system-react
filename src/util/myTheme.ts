@@ -1,4 +1,38 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme, Theme } from "@mui/material/styles";
+
+const formPaperStyles = (theme: Theme) => ({
+    "&&": {
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 32,
+        padding: theme.spacing(4),
+        boxShadow: "0 16px 44px rgba(20,38,61,0.07)",
+        [theme.breakpoints.down("sm")]: {
+            padding: theme.spacing(2.5),
+            borderRadius: 24
+        },
+        "& > .MuiTypography-h4, & > .MuiTypography-h5": {
+            color: theme.palette.text.primary,
+            fontSize: "1.4rem",
+            fontWeight: 800,
+            lineHeight: 1.5,
+            marginBottom: theme.spacing(3),
+            overflowWrap: "anywhere"
+        },
+        "& .MuiInputBase-sizeSmall:not(.MuiInputBase-multiline)": {
+            minHeight: 52
+        },
+        "& .MuiInputBase-inputSizeSmall": {
+            paddingTop: 14,
+            paddingBottom: 14
+        },
+        "& .MuiInputLabel-sizeSmall:not(.MuiInputLabel-shrink)": {
+            transform: "translate(14px, 15px) scale(1)"
+        },
+        "& .MuiButton-fullWidth": {
+            minHeight: 50
+        }
+    }
+});
 
 const myTheme = createTheme({
     direction: "rtl",
@@ -91,7 +125,14 @@ const myTheme = createTheme({
                     textTransform: "none",
                     fontWeight: 700,
                     minHeight: 38,
+                    gap: 8,
                     boxShadow: "none"
+                },
+                startIcon: {
+                    margin: 0
+                },
+                endIcon: {
+                    margin: 0
                 },
                 containedPrimary: {
                     boxShadow: "0 5px 14px rgba(54,102,232,0.16)",
@@ -105,7 +146,13 @@ const myTheme = createTheme({
             styleOverrides: {
                 rounded: {
                     borderRadius: 18
-                }
+                },
+                elevation2: {
+                    border: "1px solid #E6EBF2",
+                    boxShadow: "0 8px 26px rgba(20,38,61,0.04)"
+                },
+                elevation3: ({ theme }) => formPaperStyles(theme),
+                elevation4: ({ theme }) => formPaperStyles(theme)
             }
         },
         MuiCard: {
@@ -138,10 +185,107 @@ const myTheme = createTheme({
                 }
             }
         },
+        MuiSlider: {
+            styleOverrides: {
+                thumb: ({ ownerState, theme }) => ({
+                    ...(ownerState.orientation === "horizontal" &&
+                        theme.direction === "rtl"
+                        ? {
+                            transform: "translate(50%, -50%)"
+                        }
+                        : {})
+                })
+            }
+        },
+        MuiDialog: {
+            defaultProps: {
+                dir: "rtl"
+            },
+            styleOverrides: {
+                paper: {
+                    borderRadius: 24,
+                    border: "1px solid #E6EBF2",
+                    boxShadow: "0 24px 80px rgba(20,38,61,0.2)"
+                }
+            }
+        },
+        MuiDialogTitle: {
+            styleOverrides: {
+                root: {
+                    padding: "24px 24px 16px",
+                    fontWeight: 800,
+                    color: "#14263D"
+                }
+            }
+        },
+        MuiDialogContentText: {
+            styleOverrides: {
+                root: {
+                    lineHeight: 1.9,
+                    color: "#68778B",
+                    overflowWrap: "anywhere"
+                }
+            }
+        },
+        MuiDialogActions: {
+            styleOverrides: {
+                root: {
+                    padding: "16px 24px 24px",
+                    gap: 8,
+                    borderTop: "1px solid #E6EBF2",
+                    "& > :not(:first-of-type)": {
+                        marginLeft: 0
+                    },
+                    "& .MuiButton-root": {
+                        minHeight: 42,
+                        minWidth: 84
+                    }
+                }
+            }
+        },
         MuiAlert: {
             styleOverrides: {
                 root: {
-                    borderRadius: 12
+                    borderRadius: 14,
+                    border: "1px solid transparent",
+                    textAlign: "right",
+                    alignItems: "flex-start"
+                },
+                icon: {
+                    marginRight: 0,
+                    marginLeft: 12,
+                    paddingTop: 8
+                },
+                message: {
+                    lineHeight: 1.8,
+                    overflowWrap: "anywhere",
+                    minWidth: 0
+                },
+                action: {
+                    marginRight: 8,
+                    marginLeft: -8,
+                    paddingRight: 0,
+                    paddingLeft: 0
+                },
+                standardSuccess: {
+                    backgroundColor: "#EFFAF5",
+                    borderColor: "#CDEDDD",
+                    color: "#0E684B"
+                },
+                standardError: {
+                    backgroundColor: "#FFF3F5",
+                    borderColor: "#F5D2D9",
+                    color: "#9D263C"
+                },
+                standardWarning: {
+                    backgroundColor: "#FFF8ED",
+                    borderColor: "#F5E1BE",
+                    color: "#8A5516"
+                },
+                standardInfo: {
+                    backgroundColor: "#F0F5FF",
+                    borderColor: "#D5E2FF",
+                    color: "#264CB8"
                 }
             }
         }

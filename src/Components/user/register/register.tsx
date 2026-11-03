@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -9,10 +8,13 @@ import {
     Button,
     CircularProgress,
     Container,
+    Grid,
     Paper,
     TextField,
     Typography
 } from "@mui/material";
+
+import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 
 import { Customer } from "../../../modal/Customer";
 import jwtAxios from "../../../util/JWTaxios";
@@ -120,23 +122,60 @@ function Register(): JSX.Element {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 8, mb: 6 }}>
+        <Container
+            maxWidth="sm"
+            dir="rtl"
+            sx={{
+                mt: { xs: 2, md: 4 },
+                mb: 6,
+                px: { xs: 1, sm: 2 }
+            }}
+        >
             <Paper
-                elevation={3}
-                sx={{ p: 4, borderRadius: 2 }}
-                dir="rtl"
+                elevation={0}
+                sx={{
+                    p: { xs: 2.5, sm: 4 },
+                    borderRadius: 4,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    boxShadow: "0 16px 44px rgba(20,38,61,0.07)"
+                }}
             >
-                <Typography
-                    variant="h4"
-                    align="center"
-                    gutterBottom
-                    sx={{
-                        fontWeight: "bold",
-                        color: "#1976d2"
-                    }}
-                >
-                    הרשמה למערכת
-                </Typography>
+                <Box sx={{ textAlign: "center", mb: 3.5 }}>
+                    <Box
+                        sx={{
+                            mx: "auto",
+                            mb: 2,
+                            width: 64,
+                            height: 64,
+                            display: "grid",
+                            placeItems: "center",
+                            borderRadius: 3,
+                            bgcolor: "primary.light",
+                            color: "primary.main"
+                        }}
+                    >
+                        <PersonAddAlt1RoundedIcon
+                            sx={{ fontSize: 32 }}
+                        />
+                    </Box>
+
+                    <Typography
+                        component="h1"
+                        variant="h5"
+                        sx={{ fontWeight: 800, mb: 0.75 }}
+                    >
+                        הרשמה למערכת
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.8 }}
+                    >
+                        צור חשבון אישי וגלה את הקופונים וההטבות שלנו.
+                    </Typography>
+                </Box>
 
                 {errorMessage && (
                     <Alert
@@ -148,106 +187,135 @@ function Register(): JSX.Element {
                     </Alert>
                 )}
 
-                <form
+                <Box
+                    component="form"
                     onSubmit={handleSubmit(send)}
                     noValidate
                 >
+                    <Grid container spacing={2.5}>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="שם פרטי"
+                                fullWidth
+                                autoComplete="given-name"
+                                disabled={isLoading}
+                                error={Boolean(errors.first_name)}
+                                helperText={errors.first_name?.message}
+                                {...register("first_name", {
+                                    required: "שדה חובה"
+                                })}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="שם משפחה"
+                                fullWidth
+                                autoComplete="family-name"
+                                disabled={isLoading}
+                                error={Boolean(errors.last_name)}
+                                helperText={errors.last_name?.message}
+                                {...register("last_name", {
+                                    required: "שדה חובה"
+                                })}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <TextField
+                                label="אימייל"
+                                type="email"
+                                fullWidth
+                                autoComplete="email"
+                                disabled={isLoading}
+                                inputProps={{
+                                    dir: "ltr",
+                                    style: {
+                                        textAlign: "right"
+                                    }
+                                }}
+                                error={Boolean(errors.email)}
+                                helperText={errors.email?.message}
+                                {...register("email", {
+                                    required: "שדה חובה"
+                                })}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <TextField
+                                label="סיסמה"
+                                type="password"
+                                fullWidth
+                                autoComplete="new-password"
+                                disabled={isLoading}
+                                error={Boolean(errors.password)}
+                                helperText={errors.password?.message}
+                                {...register("password", {
+                                    required: "שדה חובה",
+                                    minLength: {
+                                        value: 4,
+                                        message: "מינימום 4 תווים"
+                                    }
+                                })}
+                            />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                disabled={isLoading}
+                                aria-busy={isLoading}
+                                sx={{
+                                    mt: 1,
+                                    minHeight: 50,
+                                    borderRadius: 2.5,
+                                    fontSize: "1rem"
+                                }}
+                            >
+                                {isLoading ? (
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1
+                                        }}
+                                    >
+                                        <CircularProgress
+                                            size={20}
+                                            color="inherit"
+                                        />
+                                        נרשם...
+                                    </Box>
+                                ) : (
+                                    "הירשם"
+                                )}
+                            </Button>
+                        </Grid>
+                    </Grid>
+
                     <Box
                         sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 2
+                            mt: 3,
+                            pt: 2,
+                            borderTop: "1px solid",
+                            borderColor: "divider",
+                            textAlign: "center"
                         }}
                     >
-                        <TextField
-                            label="שם פרטי"
-                            fullWidth
-                            disabled={isLoading}
-                            error={Boolean(errors.first_name)}
-                            helperText={errors.first_name?.message}
-                            {...register("first_name", {
-                                required: "שדה חובה"
-                            })}
-                        />
-
-                        <TextField
-                            label="שם משפחה"
-                            fullWidth
-                            disabled={isLoading}
-                            error={Boolean(errors.last_name)}
-                            helperText={errors.last_name?.message}
-                            {...register("last_name", {
-                                required: "שדה חובה"
-                            })}
-                        />
-
-                        <TextField
-                            label="אימייל"
-                            type="email"
-                            fullWidth
-                            disabled={isLoading}
-                            error={Boolean(errors.email)}
-                            helperText={errors.email?.message}
-                            {...register("email", {
-                                required: "שדה חובה"
-                            })}
-                        />
-
-                        <TextField
-                            label="סיסמה"
-                            type="password"
-                            fullWidth
-                            disabled={isLoading}
-                            error={Boolean(errors.password)}
-                            helperText={errors.password?.message}
-                            {...register("password", {
-                                required: "שדה חובה",
-                                minLength: {
-                                    value: 4,
-                                    message: "מינימום 4 תווים"
-                                }
-                            })}
-                        />
-
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            disabled={isLoading}
-                            aria-busy={isLoading}
-                            sx={{ mt: 2 }}
-                        >
-                            {isLoading ? (
-                                <Box
-                                    component="span"
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 1
-                                    }}
-                                >
-                                    <CircularProgress
-                                        size={20}
-                                        color="inherit"
-                                    />
-                                    נרשם...
-                                </Box>
-                            ) : (
-                                "הירשם"
-                            )}
-                        </Button>
-
                         <Button
                             onClick={() => navigate("/login")}
                             disabled={isLoading}
-                            color="secondary"
-                            sx={{ textTransform: "none" }}
+                            sx={{ color: "text.secondary" }}
                         >
                             כבר רשום? התחבר כאן
                         </Button>
                     </Box>
-                </form>
+                </Box>
             </Paper>
         </Container>
     );

@@ -1,6 +1,38 @@
+import { useEffect, useState } from "react";
 import { CircularProgress, Box, Typography } from "@mui/material";
 
+let hasServerResponded = false;
+
+if (typeof window !== "undefined") {
+    window.addEventListener("serverAwake", () => {
+        hasServerResponded = true;
+    });
+}
+
 function LoadingSpinner(): JSX.Element {
+    const [showServerMessage, setShowServerMessage] = useState(
+        () => !hasServerResponded
+    );
+
+    useEffect(() => {
+        const handleServerAwake = () => {
+            setShowServerMessage(false);
+        };
+
+        window.addEventListener("serverAwake", handleServerAwake);
+
+        if (hasServerResponded) {
+            setShowServerMessage(false);
+        }
+
+        return () => {
+            window.removeEventListener(
+                "serverAwake",
+                handleServerAwake
+            );
+        };
+    }, []);
+
     return (
         <Box
             dir="rtl"
@@ -40,18 +72,20 @@ function LoadingSpinner(): JSX.Element {
                 טוענים את הנתונים...
             </Typography>
 
-            <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                    mt: 1,
-                    maxWidth: 380,
-                    lineHeight: 1.8
-                }}
-            >
-                אם שרת ההדגמה במצב שינה, התעוררותו עשויה להימשך מעט זמן.
-                אנחנו מנסים להתחבר והנתונים יופיעו לאחר טעינה מוצלחת.
-            </Typography>
+            {showServerMessage && (
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                        mt: 1,
+                        maxWidth: 380,
+                        lineHeight: 1.8
+                    }}
+                >
+                    אם שרת ההדגמה במצב שינה, התעוררותו עשויה להימשך מעט זמן.
+                    אנחנו מנסים להתחבר והנתונים יופיעו לאחר טעינה מוצלחת.
+                </Typography>
+            )}
         </Box>
     );
 }

@@ -199,7 +199,7 @@ jwtAxios.interceptors.response.use(
         const status = error.response?.status;
 
         const isNetworkFailure =
-            !error.response &&
+            (error.code === "ERR_NETWORK" || !error.response) &&
             !axios.isCancel(error);
 
         const isTemporaryServerFailure =

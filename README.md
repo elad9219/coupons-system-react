@@ -1,87 +1,59 @@
-# Coupons Management System
+# Coupon Management System — Frontend
 
-A full-stack coupon marketplace built with Spring Boot and React. The application supports administrator, company, customer, and guest flows, with JWT authentication, role-based authorization, inventory validation, scheduled coupon expiration handling, and a responsive Material UI frontend.
+A responsive Hebrew coupon marketplace built with React and TypeScript.
+Visitors can browse offers, while customers, companies, and administrators
+can use dedicated account flows.
 
-## Quick Links
+[![Frontend CI](https://github.com/elad9219/coupons-system-react/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/elad9219/coupons-system-react/actions/workflows/frontend-ci.yml)
 
-- **Live Demo:** [coupons-gamma.vercel.app](https://coupons-gamma.vercel.app/)
-- **API Documentation (Swagger):** [coupons.runmydocker-app.com/swagger-ui.html](https://coupons.runmydocker-app.com/swagger-ui.html)
-- **Backend Repository:** [github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)
-- **Frontend Repository:** [github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
+| | Link |
+| --- | --- |
+| Live demo | [Open the application](https://coupons-gamma.vercel.app/) |
+| Backend repository | [Coupon System Backend](https://github.com/elad9219/coupons-system-backend) |
+| API documentation | [Swagger UI](https://coupons.runmydocker-app.com/swagger-ui.html) |
 
-## Highlights
-
-- **Role-based access:** Separate capabilities for administrators, companies, customers, and guests.
-- **JWT authentication:** Spring Security and JWT protect authenticated application flows.
-- **Real-time purchase validation:** Validates stock and expiration before a coupon purchase is completed.
-- **Scheduled expiration handling:** A background job checks for expired coupons and updates the system automatically.
-- **Company inventory management:** Companies can create, update, delete, filter, and monitor their coupons.
-- **Customer marketplace:** Customers can browse, purchase, filter, and view previously purchased coupons.
-- **Responsive frontend:** React, TypeScript, Redux Toolkit, React Router, Material UI, and Axios interceptors.
-
-> **Database note:** The project was originally developed with MySQL and was later migrated to PostgreSQL for deployment.
-
-## Technologies
-
-### Backend
-
-- Java 11
-- Spring Boot 2.7.11
-- Spring Data JPA / Hibernate
-- PostgreSQL
-- Spring Security
-- JWT
-- Swagger 2
-- Lombok
-- Maven
-
-### Frontend
-
-- React 18
-- TypeScript
-- Redux Toolkit
-- React Router DOM v6
-- Material UI v5
-- Axios with interceptors
-
-### Deployment
-
-- Docker
-- Vercel frontend deployment
+> The backend runs on a free hosting service and may need time to wake up
+> after inactivity. The application displays a loading message and retries
+> safe read requests while the server starts.
 
 ## Screenshots
 
-### Home Page
+### Coupon catalog
 
-<img width="2512" height="1270" alt="Coupons home page" src="https://github.com/user-attachments/assets/6d8f561f-6869-4500-80fe-36e66184b5a2" />
+![Coupon catalog with filters and offers](docs/screenshots/home.png)
 
-### Login Page
+### Demo sign-in
 
-<img width="2557" height="1271" alt="Coupons login page" src="https://github.com/user-attachments/assets/81ab870a-096c-4ffc-aec8-242cff011891" />
+![Sign-in page with demo account options](docs/screenshots/login.png)
 
-### Get All Companies
+### Administrator: company management
 
-<img width="2553" height="1266" alt="Administrator company management" src="https://github.com/user-attachments/assets/4ef1f8b6-1288-412d-a003-ba826a6f0f1b" />
+![Administrator company management screen](docs/screenshots/admin-companies.png)
 
-### Get a Customer by ID
+### Company: coupon management
 
-<img width="2545" height="1266" alt="Customer lookup" src="https://github.com/user-attachments/assets/e4adeb59-0f3c-4619-8d63-6c9c151ec33a" />
+![Company coupon management screen](docs/screenshots/company-coupons.png)
 
-### Add a Company
+### Mobile view
 
-<img width="2550" height="1270" alt="Add company form" src="https://github.com/user-attachments/assets/73a88301-a3a6-44a5-b0b5-b931e1441ddb" />
+<img src="docs/screenshots/mobile.png" alt="Coupon catalog on a mobile screen" width="360" />
 
-### Create a Coupon
+## Features
 
-<img width="2554" height="1271" alt="Create coupon form" src="https://github.com/user-attachments/assets/45cee5c1-ce9e-4850-a4c7-5c280d656525" />
+| Area | Capabilities |
+| --- | --- |
+| Guest | Browse the catalog, filter by category and price, sort, and register |
+| Customer | Purchase available coupons, view purchases, and update account details |
+| Company | Create, update, delete, and manage company coupons |
+| Administrator | Manage companies and customers |
+| User experience | Hebrew right-to-left layout, responsive screens, loading states, validation, and error messages |
 
-### Purchase a Coupon
+The public catalog requests one page at a time from the backend.
+Filtering and sorting are also handled by the backend.
 
-<img width="2559" height="1270" alt="Coupon purchase flow" src="https://github.com/user-attachments/assets/727fe491-e3e0-4b9c-9006-815e4e6d0b9a" />
+## Demo accounts
 
-## Demo Credentials
-
-These are public demo accounts intended only for testing the deployed application.
+Choose a role using the quick sign-in buttons on the login screen.
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -89,82 +61,79 @@ These are public demo accounts intended only for testing the deployed applicatio
 | Company | `sony@contact.com` | `1234` |
 | Customer | `kobi@gmail.com` | `1234` |
 
-## Local Setup
+These credentials are for the public demo only. Demo data is recreated
+when the demo backend restarts, so changes and purchases are temporary.
 
-### Prerequisites
+## Technologies
 
-- Java 11
-- Maven
-- Node.js and npm
-- PostgreSQL
-- Docker (optional)
+| Technology | Purpose |
+| --- | --- |
+| React 18 and TypeScript | Application and component development |
+| Material UI | Responsive interface components |
+| Redux Toolkit and React Redux | Client-side state |
+| React Router | Navigation |
+| Axios | API communication |
+| Jest and React Testing Library | Automated tests |
+| GitHub Actions | Tests and production build |
+| Vercel | Frontend hosting |
 
-### Backend
+## Local development
 
-```bash
-git clone https://github.com/elad9219/coupons-system-backend.git
-cd coupons-system-backend
-```
+### Requirements
 
-Create your local `src/main/resources/application.properties` from the example file and use your own database values:
+- Node.js 22 and npm
+- The [backend application](https://github.com/elad9219/coupons-system-backend) running locally
+- A PostgreSQL database configured for the backend
 
-```properties
-spring.datasource.url=jdbc:postgresql://<HOST>:<PORT>/<DATABASE>
-spring.datasource.username=<USERNAME>
-spring.datasource.password=<PASSWORD>
-```
+The frontend uses the browser's current hostname and port `8080` for the
+backend in development. For the default setup, open the frontend at
+`http://localhost:3000` and run the backend at `http://localhost:8080`.
 
-Then build and run:
-
-```bash
-mvn clean install
-mvn spring-boot:run
-```
-
-### Frontend
+### Start the application
 
 ```bash
 git clone https://github.com/elad9219/coupons-system-react.git
 cd coupons-system-react
-npm install
+npm ci
 npm start
 ```
 
-## Project Structure
+Open [http://localhost:3000](http://localhost:3000).
 
-### Backend
+For backend configuration and startup instructions, see the
+[backend README](https://github.com/elad9219/coupons-system-backend).
 
-```text
-src/main/java/com/jb/spring_coupons_project/
-├── advice/
-├── beans/
-├── clr/
-├── config/
-├── controller/
-├── dailyJob/
-├── repository/
-├── security/
-└── service/
+## Tests and build
+
+```bash
+CI=true npm test -- --watch=false --runInBand
+npm run build
 ```
 
-### Frontend
+The frontend workflow runs tests and a production build on pushes and pull
+requests.
 
-```text
-src/
-├── Components/
-│   ├── admin/
-│   ├── company/
-│   ├── customer/
-│   ├── user/
-│   ├── mainLayout/
-│   └── routing/
-├── redux/
-└── util/
+## Architecture
+
+```mermaid
+flowchart LR
+    U["Guest or signed-in user"] --> F["React frontend"]
+    F -->|"HTTPS requests"| B["Spring Boot API"]
+    B --> D["PostgreSQL"]
 ```
 
-## Contact
+The production frontend is hosted on Vercel and communicates with the
+backend hosted on RunMyDocker.
 
-- **Elad Tennenboim**
-- **GitHub:** [elad9219](https://github.com/elad9219)
-- **LinkedIn:** [linkedin.com/in/elad-tennenboim](https://www.linkedin.com/in/elad-tennenboim/)
-- **Email:** elad9219@gmail.com
+## Related repository
+
+- [Backend API and database logic](https://github.com/elad9219/coupons-system-backend)
+
+## Author
+
+**Elad Tennenboim**
+
+- [GitHub](https://github.com/elad9219)
+- [LinkedIn](https://www.linkedin.com/in/elad-tennenboim/)
+- [Portfolio](https://eladt-portfolio.vercel.app/)
+- [Email](mailto:elad9219@gmail.com)

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
     fireEvent,
@@ -13,6 +12,12 @@ import jwtAxios from "../../../util/JWTaxios";
 import globals from "../../../util/global";
 
 const mockDispatch = jest.fn();
+const mockScrollIntoView = jest.fn();
+
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(
+    Element.prototype,
+    "scrollIntoView"
+);
 
 jest.mock("react-redux", () => ({
     useDispatch: () => mockDispatch,
@@ -78,6 +83,27 @@ function catalogResponse(
 
 beforeEach(() => {
     jest.clearAllMocks();
+
+    Object.defineProperty(Element.prototype, "scrollIntoView", {
+        configurable: true,
+        writable: true,
+        value: mockScrollIntoView
+    });
+});
+
+afterEach(() => {
+    if (originalScrollIntoView) {
+        Object.defineProperty(
+            Element.prototype,
+            "scrollIntoView",
+            originalScrollIntoView
+        );
+    } else {
+        Reflect.deleteProperty(
+            Element.prototype,
+            "scrollIntoView"
+        );
+    }
 });
 
 describe("AllCoupons server-side catalog", () => {
@@ -110,7 +136,7 @@ describe("AllCoupons server-side catalog", () => {
         ).toHaveLength(1);
     });
 
-    test("requests another page from the backend", async () => {
+    test("requests another page from the backend and scrolls to the results", async () => {
         mockGet.mockImplementation(
             (_url: string, config: any) => {
                 const requestedPage = config.params.page;
@@ -138,6 +164,12 @@ describe("AllCoupons server-side catalog", () => {
                 name: "Go to page 2"
             })
         );
+
+        expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
+        expect(mockScrollIntoView).toHaveBeenCalledWith({
+            behavior: "auto",
+            block: "start"
+        });
 
         expect(
             await screen.findByText("Second coupon")

@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -52,6 +51,7 @@ const priceFormatter = new Intl.NumberFormat("he-IL");
 
 function AllCoupons(): JSX.Element {
     const dispatch = useDispatch();
+    const resultsRef = useRef<HTMLDivElement>(null);
 
     const userType = useSelector(
         (state: RootState) => state.authState.userType
@@ -521,13 +521,15 @@ function AllCoupons(): JSX.Element {
             </Paper>
 
             <Box
+                ref={resultsRef}
                 sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-end",
                     flexWrap: "wrap",
                     gap: 1,
-                    mb: 2
+                    mb: 2,
+                    scrollMarginTop: "100px"
                 }}
             >
                 <Box>
@@ -655,6 +657,13 @@ function AllCoupons(): JSX.Element {
                                 count={totalPages}
                                 page={page + 1}
                                 onChange={(_, selectedPage) => {
+                                    if (selectedPage === page + 1) return;
+
+                                    resultsRef.current?.scrollIntoView({
+                                        behavior: "auto",
+                                        block: "start"
+                                    });
+
                                     setPage(selectedPage - 1);
                                 }}
                                 color="primary"

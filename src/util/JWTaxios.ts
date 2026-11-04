@@ -1,6 +1,15 @@
+
 import axios, { AxiosRequestConfig } from "axios";
 import { store } from "../redux/store";
-import { updateToken } from "../redux/authState";
+import {
+    updateToken,
+    userLogout
+} from "../redux/authState";
+import {
+    clearStoredSession,
+    getSessionClaims,
+    getValidStoredToken
+} from "./session";
 
 interface RetryableRequestConfig extends AxiosRequestConfig {
     _retryCount?: number;
@@ -29,6 +38,12 @@ const canRetry = (config: RetryableRequestConfig): boolean => {
         (config._retryCount || 0) < MAX_RETRIES;
 };
 
+const isLoginRequest = (
+    config: AxiosRequestConfig
+): boolean => {
+    return config.url?.endsWith("/api/login") === true;
+};
+
 const retryRequest = async (
     config: RetryableRequestConfig
 ) => {
@@ -43,11 +58,22 @@ const retryRequest = async (
 };
 
 jwtAxios.interceptors.request.use(request => {
-    const token = sessionStorage.getItem("token");
+    const previousToken = sessionStorage.getItem("token");
+    const token = getValidStoredToken();
+
+    if (
+        previousToken &&
+        !token &&
+        store.getState().authState.userToken
+    ) {
+        store.dispatch(userLogout());
+    }
 
     if (token) {
         request.headers = request.headers || {};
         request.headers.Authorization = token;
+    } else if (request.headers) {
+        delete request.headers.Authorization;
     }
 
     return request;
@@ -78,20 +104,19 @@ jwtAxios.interceptors.response.use(
         const submittedToken =
             response.config.headers?.Authorization;
 
-        const currentToken =
-            sessionStorage.getItem("token");
-
-        const isLoginResponse =
-            response.config.url?.endsWith("/api/login") === true;
+        const currentToken = sessionStorage.getItem("token");
 
         const isCurrentSession =
             typeof submittedToken === "string" &&
             submittedToken === currentToken;
 
+        // Login handles its own token validation and profile loading.
+        // Do not update Redux before that process completes.
         if (
+            !isLoginRequest(response.config) &&
+            isCurrentSession &&
             typeof refreshedToken === "string" &&
-            refreshedToken.startsWith("Bearer ") &&
-            (isLoginResponse || isCurrentSession)
+            getSessionClaims(refreshedToken)
         ) {
             sessionStorage.setItem("token", refreshedToken);
             store.dispatch(updateToken(refreshedToken));
@@ -122,6 +147,31 @@ jwtAxios.interceptors.response.use(
             (isNetworkFailure || isTemporaryServerFailure)
         ) {
             return retryRequest(config);
+        }
+
+        // An authenticated request was rejected because its token
+        // is invalid or has expired. Do not leave a stale login visible.
+        if (
+            status === 401 &&
+            config &&
+            !isLoginRequest(config)
+        ) {
+            const submittedToken =
+                config.headers?.Authorization;
+
+            const currentToken =
+                sessionStorage.getItem("token");
+
+            if (
+                typeof submittedToken === "string" &&
+                submittedToken === currentToken
+            ) {
+                clearStoredSession();
+                store.dispatch(userLogout());
+                window.dispatchEvent(
+                    new Event("sessionExpired")
+                );
+            }
         }
 
         return Promise.reject(error);

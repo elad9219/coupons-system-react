@@ -2,13 +2,13 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+
 import {
     Box,
     Button,
     Card,
     CardActions,
     CardContent,
-    CardMedia,
     Chip,
     CircularProgress,
     Dialog,
@@ -19,8 +19,12 @@ import {
     IconButton,
     Typography
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 
 import { Coupon } from "../../../modal/Coupon";
 import { RootState } from "../../../redux/store";
@@ -45,9 +49,12 @@ const israelDateFormatter = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit"
 });
 
+const priceFormatter = new Intl.NumberFormat("he-IL", {
+    maximumFractionDigits: 2
+});
+
 function getTodayInIsrael(): string {
     const parts = israelDateFormatter.formatToParts(new Date());
-
     const year = parts.find(part => part.type === "year")?.value;
     const month = parts.find(part => part.type === "month")?.value;
     const day = parts.find(part => part.type === "day")?.value;
@@ -109,11 +116,9 @@ function SingleCoupon({
     const userType = useSelector(
         (state: RootState) => state.authState.userType
     );
-
     const userId = useSelector(
         (state: RootState) => state.authState.id
     );
-
     const customer = useSelector(
         (state: RootState) => state.customerState.customer[0]
     );
@@ -122,6 +127,7 @@ function SingleCoupon({
     const [openPurchase, setOpenPurchase] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
 
     const purchaseInProgress = useRef(false);
     const deletionInProgress = useRef(false);
@@ -162,7 +168,13 @@ function SingleCoupon({
         isNotStarted ||
         isOutOfStock;
 
-    const confirmPurchase = () => {
+    const imageUrl = coupon.image?.trim() || "";
+    const hasImage =
+        !imageFailed &&
+        /^https?:\/\//i.test(imageUrl) &&
+        !/via\.placeholder\.com|placehold\.co/i.test(imageUrl);
+
+    const confirmPurchase = (): void => {
         if (purchaseInProgress.current || purchaseUnavailable) {
             return;
         }
@@ -207,10 +219,7 @@ function SingleCoupon({
     };
 
     const removeCoupon = async (): Promise<void> => {
-        if (
-            deletionInProgress.current ||
-            !isCompanyOwner
-        ) {
+        if (deletionInProgress.current || !isCompanyOwner) {
             return;
         }
 
@@ -236,7 +245,7 @@ function SingleCoupon({
         }
     };
 
-    const goToUpdate = () => {
+    const goToUpdate = (): void => {
         if (updateCoupon) {
             updateCoupon();
         } else {
@@ -246,6 +255,14 @@ function SingleCoupon({
         }
     };
 
+    const couponStatus = isExpired
+        ? "פג תוקף"
+        : isNotStarted
+            ? "טרם התחיל"
+            : isOutOfStock && !isOwned
+                ? "אזל המלאי"
+                : "";
+
     return (
         <Card
             dir="rtl"
@@ -253,130 +270,269 @@ function SingleCoupon({
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                position: "relative",
-                borderRadius: 3,
-                border: isExpired ? "1px solid #ffcdd2" : "none",
-                transition: "transform 0.2s",
-                "&:hover": { transform: "scale(1.02)" }
+                overflow: "hidden",
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 4,
+                boxShadow: "0 8px 28px rgba(20,38,61,0.06)",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 16px 36px rgba(20,38,61,0.12)"
+                },
+                "@media (prefers-reduced-motion: reduce)": {
+                    transition: "none",
+                    "&:hover": {
+                        transform: "none"
+                    }
+                }
             }}
         >
-            {isExpired && (
-                <Chip
-                    label="פג תוקף"
-                    color="error"
-                    size="small"
-                    sx={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        zIndex: 2,
-                        fontWeight: "bold"
-                    }}
-                />
-            )}
-
-            {!isExpired && isNotStarted && (
-                <Chip
-                    label="טרם התחיל"
-                    color="warning"
-                    size="small"
-                    sx={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        zIndex: 2
-                    }}
-                />
-            )}
-
             <Box
                 sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                    opacity: isExpired ? 0.6 : 1,
-                    filter: isExpired ? "grayscale(0.8)" : "none"
+                    position: "relative",
+                    height: 195,
+                    overflow: "hidden",
+                    bgcolor: "#EAF0FF",
+                    flexShrink: 0
                 }}
             >
-                <CardMedia
-                    component="img"
-                    height="180"
-                    image={
-                        coupon.image ||
-                        "https://via.placeholder.com/200"
-                    }
-                    alt={coupon.title}
+                {hasImage ? (
+                    <Box
+                        component="img"
+                        src={imageUrl}
+                        alt={coupon.title}
+                        loading="lazy"
+                        onError={() => setImageFailed(true)}
+                        sx={{
+                            display: "block",
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover"
+                        }}
+                    />
+                ) : (
+                    <Box
+                        role="img"
+                        aria-label="תמונת קופון אינה זמינה"
+                        sx={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1.5,
+                            background:
+                                "linear-gradient(135deg, #EAF0FF 0%, #DCE9F6 55%, #E4F8F5 100%)"
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                width: 76,
+                                height: 76,
+                                display: "grid",
+                                placeItems: "center",
+                                borderRadius: "24px",
+                                bgcolor: "rgba(255,255,255,0.8)",
+                                color: "primary.main",
+                                boxShadow: "0 8px 24px rgba(20,38,61,0.06)"
+                            }}
+                        >
+                            <LocalOfferOutlinedIcon
+                                sx={{ fontSize: 39 }}
+                            />
+                        </Box>
+
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: "text.secondary",
+                                fontWeight: 700
+                            }}
+                        >
+                            הצעה מיוחדת
+                        </Typography>
+                    </Box>
+                )}
+
+                {couponStatus && (
+                    <Chip
+                        size="small"
+                        label={couponStatus}
+                        color={
+                            isExpired
+                                ? "error"
+                                : isNotStarted
+                                    ? "warning"
+                                    : "default"
+                        }
+                        sx={{
+                            position: "absolute",
+                            top: 14,
+                            right: 14,
+                            fontWeight: 800,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.12)"
+                        }}
+                    />
+                )}
+
+                {!isOwned && !couponStatus && isPurchasedByCustomer && (
+                    <Chip
+                        size="small"
+                        label="כבר נרכש"
+                        color="success"
+                        sx={{
+                            position: "absolute",
+                            top: 14,
+                            right: 14,
+                            fontWeight: 800
+                        }}
+                    />
+                )}
+            </Box>
+
+            <CardContent
+                sx={{
+                    px: 2.5,
+                    pt: 2.5,
+                    pb: 1,
+                    flexGrow: 1,
+                    display: "flex",
+                    flexDirection: "column"
+                }}
+            >
+                <Chip
+                    size="small"
+                    variant="outlined"
+                    icon={<LocalOfferOutlinedIcon />}
+                    label={getHebrewCategory(coupon.category)}
+                    sx={{
+                        alignSelf: "flex-start",
+                        mb: 1.5,
+                        borderColor: "#D8E4F5",
+                        color: "primary.dark",
+                        bgcolor: "#F7F9FF"
+                    }}
                 />
 
-                <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            fontWeight: "bold",
-                            fontSize: "1.1rem",
-                            lineHeight: 1.2,
-                            mb: 1
-                        }}
-                    >
-                        {coupon.title}
-                    </Typography>
+                <Typography
+                    variant="h6"
+                    sx={{
+                        color: "text.primary",
+                        fontSize: "1.1rem",
+                        fontWeight: 800,
+                        mb: 1,
+                        lineHeight: 1.35,
+                        minHeight: 29
+                    }}
+                >
+                    {coupon.title}
+                </Typography>
 
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: "text.secondary",
+                        lineHeight: 1.65,
+                        minHeight: 47,
+                        mb: 2.5,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical"
+                    }}
+                >
+                    {coupon.description || "הצעה מיוחדת לזמן מוגבל"}
+                </Typography>
+
+                <Box sx={{ mt: "auto" }}>
+                    <Box
                         sx={{
-                            mb: 2,
-                            minHeight: 40,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical"
+                            display: "flex",
+                            alignItems: "baseline",
+                            justifyContent: "space-between",
+                            gap: 1,
+                            mb: 1.5
                         }}
                     >
-                        {coupon.description}
-                    </Typography>
+                        <Box>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: "block",
+                                    color: "text.secondary",
+                                    mb: 0.3
+                                }}
+                            >
+                                מחיר הקופון
+                            </Typography>
+
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: "primary.main",
+                                    fontWeight: 900,
+                                    lineHeight: 1.2
+                                }}
+                            >
+                                ₪{priceFormatter.format(coupon.price)}
+                            </Typography>
+                        </Box>
+
+                        {isCompanyOwner && (
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: "text.secondary",
+                                    fontWeight: 600
+                                }}
+                            >
+                                מלאי: {coupon.amount}
+                            </Typography>
+                        )}
+                    </Box>
 
                     <Box
                         sx={{
                             display: "flex",
-                            justifyContent: "space-between",
                             alignItems: "center",
-                            mt: "auto"
+                            gap: 0.75,
+                            color: "text.secondary",
+                            pt: 1.5,
+                            borderTop: "1px solid",
+                            borderColor: "divider"
                         }}
                     >
-                        <Typography
-                            variant="h6"
-                            color="primary"
-                            fontWeight="bold"
-                        >
-                            ₪{coupon.price}
-                        </Typography>
-
-                        <Chip
-                            label={getHebrewCategory(coupon.category)}
-                            size="small"
-                            variant="outlined"
+                        <CalendarTodayOutlinedIcon
+                            sx={{ fontSize: 15 }}
                         />
+
+                        <Typography variant="caption">
+                            בתוקף עד: {formatCouponDate(coupon.end_date)}
+                        </Typography>
                     </Box>
+                </Box>
+            </CardContent>
 
-                    <Typography
-                        variant="caption"
-                        display="block"
-                        sx={{ mt: 1, color: "#888" }}
-                    >
-                        בתוקף עד: {formatCouponDate(coupon.end_date)}
-                    </Typography>
-                </CardContent>
-
-                <CardActions sx={{ p: 2, pt: 0 }}>
+            {!isOwned && (
+                <CardActions
+                    sx={{
+                        display: "flex",
+                        gap: 1,
+                        px: 2.5,
+                        pb: 2.5,
+                        pt: 2
+                    }}
+                >
                     {isCompanyOwner && (
-                        <Box sx={{ width: "100%", display: "flex", gap: 1 }}>
+                        <>
                             <Button
                                 variant="outlined"
-                                startIcon={<EditIcon />}
+                                startIcon={<EditOutlinedIcon />}
                                 onClick={goToUpdate}
                                 fullWidth
+                                sx={{ flexGrow: 1 }}
                             >
                                 עדכן
                             </Button>
@@ -386,10 +542,15 @@ function SingleCoupon({
                                 aria-label="מחק קופון"
                                 disabled={isDeleting}
                                 onClick={() => setOpenDelete(true)}
+                                sx={{
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    borderRadius: 2.5
+                                }}
                             >
-                                <DeleteIcon />
+                                <DeleteOutlineRoundedIcon />
                             </IconButton>
-                        </Box>
+                        </>
                     )}
 
                     {(userType === "CUSTOMER" || !userType) && (
@@ -401,11 +562,20 @@ function SingleCoupon({
                                 Boolean(purchaseUnavailable) ||
                                 isPurchasing
                             }
+                            startIcon={
+                                !purchaseUnavailable
+                                    ? <ShoppingBagOutlinedIcon />
+                                    : undefined
+                            }
                             color={
                                 isPurchasedByCustomer
                                     ? "success"
                                     : "primary"
                             }
+                            sx={{
+                                minHeight: 44,
+                                fontWeight: 800
+                            }}
                         >
                             {isPurchasedByCustomer
                                 ? "נרכש"
@@ -419,40 +589,51 @@ function SingleCoupon({
                         </Button>
                     )}
 
-                    {isExpired && !isCompanyOwner &&
-                        userType !== "CUSTOMER" && Boolean(userType) && (
+                    {isExpired &&
+                        !isCompanyOwner &&
+                        userType !== "CUSTOMER" &&
+                        Boolean(userType) && (
                             <Button fullWidth disabled>
                                 לא זמין לרכישה
                             </Button>
                         )}
                 </CardActions>
-            </Box>
+            )}
 
             <Dialog
                 open={openDelete}
                 onClose={() => {
-                    if (!isDeleting) setOpenDelete(false);
+                    if (!isDeleting) {
+                        setOpenDelete(false);
+                    }
                 }}
                 dir="rtl"
+                fullWidth
+                maxWidth="xs"
             >
-                <DialogTitle>מחיקת קופון</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 800 }}>
+                    מחיקת קופון
+                </DialogTitle>
+
                 <DialogContent>
                     <DialogContentText>
                         למחוק את "{coupon.title}"?
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions>
+
+                <DialogActions sx={{ p: 2.5 }}>
                     <Button
                         disabled={isDeleting}
                         onClick={() => setOpenDelete(false)}
                     >
                         ביטול
                     </Button>
+
                     <Button
                         disabled={isDeleting}
                         onClick={removeCoupon}
-                        color="error"
                         variant="contained"
+                        color="error"
                     >
                         {isDeleting ? "מוחק..." : "מחק"}
                     </Button>
@@ -462,11 +643,15 @@ function SingleCoupon({
             <Dialog
                 open={openPurchase}
                 onClose={() => {
-                    if (!isPurchasing) setOpenPurchase(false);
+                    if (!isPurchasing) {
+                        setOpenPurchase(false);
+                    }
                 }}
                 dir="rtl"
+                fullWidth
+                maxWidth="xs"
             >
-                <DialogTitle sx={{ fontWeight: "bold" }}>
+                <DialogTitle sx={{ fontWeight: 800 }}>
                     אישור רכישה
                 </DialogTitle>
 
@@ -474,11 +659,15 @@ function SingleCoupon({
                     <DialogContentText>
                         האם לרכוש את הקופון{" "}
                         <strong>{coupon.title}</strong>{" "}
-                        במחיר <strong>₪{coupon.price}</strong>?
+                        במחיר{" "}
+                        <strong>
+                            ₪{priceFormatter.format(coupon.price)}
+                        </strong>
+                        ?
                     </DialogContentText>
                 </DialogContent>
 
-                <DialogActions>
+                <DialogActions sx={{ p: 2.5 }}>
                     <Button
                         disabled={isPurchasing}
                         onClick={() => setOpenPurchase(false)}
@@ -493,10 +682,12 @@ function SingleCoupon({
                         color="primary"
                         startIcon={
                             isPurchasing
-                                ? <CircularProgress
-                                    size={16}
-                                    color="inherit"
-                                />
+                                ? (
+                                    <CircularProgress
+                                        size={16}
+                                        color="inherit"
+                                    />
+                                )
                                 : undefined
                         }
                     >

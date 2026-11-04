@@ -97,10 +97,9 @@ describe("SingleCoupon purchase safety", () => {
             screen.getByRole("button", { name: "רכישה" })
         );
 
-        const confirmButton = screen.getByRole(
-            "button",
-            { name: "אישור ורכישה" }
-        );
+        const confirmButton = screen.getByRole("button", {
+            name: "אישור ורכישה"
+        });
 
         fireEvent.click(confirmButton);
         fireEvent.click(confirmButton);
@@ -141,6 +140,40 @@ describe("SingleCoupon purchase safety", () => {
         expect(mockPost).not.toHaveBeenCalled();
     });
 
+    test("hides redundant purchase controls in the owned collection", () => {
+        render(
+            <SingleCoupon
+                coupon={{ ...coupon, amount: 0 }}
+                isOwned
+            />
+        );
+
+        expect(screen.queryByText("כבר נרכש"))
+            .not.toBeInTheDocument();
+        expect(screen.queryByText("אזל המלאי"))
+            .not.toBeInTheDocument();
+        expect(screen.queryByRole("button"))
+            .not.toBeInTheDocument();
+
+        expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    test("keeps expiration visible in the owned collection", () => {
+        render(
+            <SingleCoupon
+                coupon={{ ...coupon, expired: true }}
+                isOwned
+            />
+        );
+
+        expect(screen.getByText("פג תוקף"))
+            .toBeInTheDocument();
+        expect(screen.queryByRole("button"))
+            .not.toBeInTheDocument();
+
+        expect(mockPost).not.toHaveBeenCalled();
+    });
+
     test("shows an error and permits a manual retry", async () => {
         mockPost
             .mockRejectedValueOnce(new Error("Server error"))
@@ -155,7 +188,9 @@ describe("SingleCoupon purchase safety", () => {
         );
 
         fireEvent.click(
-            screen.getByRole("button", { name: "אישור ורכישה" })
+            screen.getByRole("button", {
+                name: "אישור ורכישה"
+            })
         );
 
         await waitFor(() => {
@@ -167,7 +202,9 @@ describe("SingleCoupon purchase safety", () => {
         expect(mockPost).toHaveBeenCalledTimes(1);
 
         fireEvent.click(
-            screen.getByRole("button", { name: "אישור ורכישה" })
+            screen.getByRole("button", {
+                name: "אישור ורכישה"
+            })
         );
 
         await waitFor(() => {

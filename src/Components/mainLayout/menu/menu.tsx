@@ -1,158 +1,261 @@
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 import {
+    Box,
     Divider,
     List,
-    ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
     Typography
 } from "@mui/material";
 
-import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import StoreIcon from "@mui/icons-material/Store";
-import PeopleIcon from "@mui/icons-material/People";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import PersonIcon from "@mui/icons-material/Person";
-import SearchIcon from "@mui/icons-material/Search";
+import AddBusinessOutlinedIcon from "@mui/icons-material/AddBusinessOutlined";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import { RootState } from "../../../redux/store";
 
-function Menu(): JSX.Element {
+interface MenuProps {
+    onNavigate?: () => void;
+}
+
+interface MenuEntry {
+    label: string;
+    to: string;
+    icon: JSX.Element;
+}
+
+interface MenuGroup {
+    title: string;
+    entries: MenuEntry[];
+}
+
+function Menu({ onNavigate }: MenuProps): JSX.Element {
     const userType = useSelector(
         (state: RootState) => state.authState.userType
     );
 
-    const linkStyle = {
-        textDecoration: "none",
-        color: "inherit",
-        width: "100%"
-    };
+    const adminGroups: MenuGroup[] = [
+        {
+            title: "יצירה וניהול",
+            entries: [
+                {
+                    label: "הוספת חברה",
+                    to: "/admin/addCompany",
+                    icon: <AddBusinessOutlinedIcon />
+                },
+                {
+                    label: "הוספת לקוח",
+                    to: "/admin/addCustomer",
+                    icon: <PersonAddAltOutlinedIcon />
+                }
+            ]
+        },
+        {
+            title: "מאגרי המערכת",
+            entries: [
+                {
+                    label: "כל החברות",
+                    to: "/admin/getAllCompanies",
+                    icon: <StorefrontOutlinedIcon />
+                },
+                {
+                    label: "כל הלקוחות",
+                    to: "/admin/getAllCustomers",
+                    icon: <PeopleAltOutlinedIcon />
+                }
+            ]
+        },
+        {
+            title: "איתור רשומות",
+            entries: [
+                {
+                    label: "חיפוש חברה לפי מזהה",
+                    to: "/admin/getOneCompany",
+                    icon: <SearchOutlinedIcon />
+                },
+                {
+                    label: "חיפוש לקוח לפי מזהה",
+                    to: "/admin/getCustomer",
+                    icon: <SearchOutlinedIcon />
+                }
+            ]
+        }
+    ];
+
+    const companyGroups: MenuGroup[] = [
+        {
+            title: "ניהול החברה",
+            entries: [
+                {
+                    label: "יצירת קופון",
+                    to: "/company/addCoupon",
+                    icon: <AddCircleOutlineIcon />
+                },
+                {
+                    label: "הקופונים שלי",
+                    to: "/company/allCoupons",
+                    icon: <LocalOfferOutlinedIcon />
+                },
+                {
+                    label: "פרטי החברה",
+                    to: "/company/getComapnyDetails",
+                    icon: <StorefrontOutlinedIcon />
+                }
+            ]
+        }
+    ];
+
+    const customerGroups: MenuGroup[] = [
+        {
+            title: "האזור האישי",
+            entries: [
+                {
+                    label: "הקופונים שלי",
+                    to: "/customer/customerCoupons",
+                    icon: <LocalOfferOutlinedIcon />
+                },
+                {
+                    label: "הפרופיל שלי",
+                    to: "/customer/customerDetails",
+                    icon: <PersonOutlineIcon />
+                }
+            ]
+        }
+    ];
+
+    const groups =
+        userType === "ADMIN"
+            ? adminGroups
+            : userType === "COMPANY"
+                ? companyGroups
+                : userType === "CUSTOMER"
+                    ? customerGroups
+                    : [];
+
+    const roleLabel =
+        userType === "ADMIN"
+            ? "ניהול מערכת"
+            : userType === "COMPANY"
+                ? "חשבון חברה"
+                : "חשבון לקוח";
 
     return (
-        <div className="menu">
-            {userType === "ADMIN" && (
-                <List>
-                    <ListItem disablePadding>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ p: 2, color: "gray", fontWeight: "bold" }}
-                        >
-                            פעולות אדמין
-                        </Typography>
-                    </ListItem>
+        <Box
+            component="nav"
+            aria-label="ניווט ראשי"
+            dir="rtl"
+            sx={{
+                width: "100%",
+                height: "100%",
+                px: 2,
+                py: 3
+            }}
+        >
+            <Box
+                sx={{
+                    px: 1.5,
+                    pb: 2.5
+                }}
+            >
+                <Typography
+                    variant="overline"
+                    sx={{
+                        color: "text.secondary",
+                        letterSpacing: 1,
+                        fontWeight: 700
+                    }}
+                >
+                    סביבת העבודה
+                </Typography>
 
-                    <NavLink to="admin/addCompany" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><AddBusinessIcon /></ListItemIcon>
-                            <ListItemText primary="הוספת חברה" />
-                        </ListItemButton>
-                    </NavLink>
+                <Typography
+                    variant="h6"
+                    sx={{
+                        color: "text.primary",
+                        fontWeight: 800
+                    }}
+                >
+                    {roleLabel}
+                </Typography>
+            </Box>
 
-                    <NavLink to="admin/addCustomer" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><PersonAddIcon /></ListItemIcon>
-                            <ListItemText primary="הוספת לקוח" />
-                        </ListItemButton>
-                    </NavLink>
+            {groups.map((group, index) => (
+                <Box key={group.title} sx={{ mb: 1.5 }}>
+                    {index > 0 && (
+                        <Divider sx={{ my: 2 }} />
+                    )}
 
-                    <Divider sx={{ my: 1 }} />
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            display: "block",
+                            px: 1.5,
+                            mb: 1,
+                            color: "text.secondary",
+                            fontWeight: 800
+                        }}
+                    >
+                        {group.title}
+                    </Typography>
 
-                    <NavLink to="admin/getAllCompanies" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><StoreIcon /></ListItemIcon>
-                            <ListItemText primary="כל החברות" />
-                        </ListItemButton>
-                    </NavLink>
+                    <List disablePadding>
+                        {group.entries.map(entry => (
+                            <ListItemButton
+                                key={entry.to}
+                                component={NavLink}
+                                to={entry.to}
+                                onClick={onNavigate}
+                                sx={{
+                                    mb: 0.5,
+                                    px: 1.5,
+                                    py: 1.15,
+                                    borderRadius: 2.5,
+                                    color: "text.secondary",
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                        bgcolor: "#F1F5FD",
+                                        color: "primary.main"
+                                    },
+                                    "&.active": {
+                                        bgcolor: "#EAF0FF",
+                                        color: "primary.dark",
+                                        fontWeight: 800
+                                    },
+                                    "&.active .MuiListItemIcon-root": {
+                                        color: "primary.main"
+                                    }
+                                }}
+                            >
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 38,
+                                        color: "inherit"
+                                    }}
+                                >
+                                    {entry.icon}
+                                </ListItemIcon>
 
-                    <NavLink to="admin/getAllCustomers" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><PeopleIcon /></ListItemIcon>
-                            <ListItemText primary="כל הלקוחות" />
-                        </ListItemButton>
-                    </NavLink>
-
-                    <Divider sx={{ my: 1 }} />
-
-                    <NavLink to="admin/getOneCompany" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><SearchIcon /></ListItemIcon>
-                            <ListItemText primary="חיפוש חברה (ID)" />
-                        </ListItemButton>
-                    </NavLink>
-
-                    <NavLink to="admin/getCustomer" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><SearchIcon /></ListItemIcon>
-                            <ListItemText primary="חיפוש לקוח (ID)" />
-                        </ListItemButton>
-                    </NavLink>
-                </List>
-            )}
-
-            {userType === "COMPANY" && (
-                <List>
-                    <ListItem disablePadding>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ p: 2, color: "gray", fontWeight: "bold" }}
-                        >
-                            ניהול חברה
-                        </Typography>
-                    </ListItem>
-
-                    <NavLink to="company/addCoupon" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><AddBusinessIcon /></ListItemIcon>
-                            <ListItemText primary="יצירת קופון" />
-                        </ListItemButton>
-                    </NavLink>
-
-                    <NavLink to="company/allCoupons" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><LocalOfferIcon /></ListItemIcon>
-                            <ListItemText primary="הקופונים שלי" />
-                        </ListItemButton>
-                    </NavLink>
-
-                    <NavLink to="company/getComapnyDetails" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><StoreIcon /></ListItemIcon>
-                            <ListItemText primary="פרטי החברה" />
-                        </ListItemButton>
-                    </NavLink>
-                </List>
-            )}
-
-            {userType === "CUSTOMER" && (
-                <List>
-                    <ListItem disablePadding>
-                        <Typography
-                            variant="subtitle2"
-                            sx={{ p: 2, color: "gray", fontWeight: "bold" }}
-                        >
-                            אזור אישי
-                        </Typography>
-                    </ListItem>
-
-                    <NavLink to="customer/customerCoupons" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><LocalOfferIcon /></ListItemIcon>
-                            <ListItemText primary="הקופונים שלי" />
-                        </ListItemButton>
-                    </NavLink>
-
-                    <NavLink to="customer/customerDetails" style={linkStyle}>
-                        <ListItemButton>
-                            <ListItemIcon><PersonIcon /></ListItemIcon>
-                            <ListItemText primary="הפרופיל שלי" />
-                        </ListItemButton>
-                    </NavLink>
-                </List>
-            )}
-        </div>
+                                <ListItemText
+                                    primary={entry.label}
+                                    primaryTypographyProps={{
+                                        fontSize: 14,
+                                        fontWeight: 650
+                                    }}
+                                />
+                            </ListItemButton>
+                        ))}
+                    </List>
+                </Box>
+            ))}
+        </Box>
     );
 }
 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
@@ -7,10 +8,11 @@ import { ThemeProvider } from "@mui/material/styles";
 import MainLayout from "./Components/mainLayout/mainLayout";
 import { store } from "./redux/store";
 import { loadToken } from "./redux/authState";
+import { getValidStoredToken } from "./util/session";
 import myTheme from "./util/myTheme";
 import reportWebVitals from "./reportWebVitals";
 
-const token = sessionStorage.getItem("token");
+const token = getValidStoredToken();
 
 if (token) {
     store.dispatch(loadToken(token));

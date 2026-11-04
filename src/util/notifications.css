@@ -1,0 +1,118 @@
+.notyf {
+    padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+.notyf .app-toast {
+    width: min(440px, calc(100vw - 32px));
+    max-width: 440px;
+    padding: 0 18px;
+    border: 1px solid #e6ebf2;
+    border-right: 4px solid #3666e8;
+    border-radius: 18px;
+    color: #14263d;
+    box-shadow: 0 12px 40px rgba(20, 38, 61, 0.16);
+    direction: rtl;
+    text-align: right;
+}
+
+.notyf .app-toast--success {
+    border-right-color: #159b75;
+}
+
+.notyf .app-toast--error {
+    border-right-color: #dc4658;
+}
+
+.notyf .app-toast .notyf__wrapper {
+    min-height: 72px;
+    padding: 16px 0 16px 38px;
+    gap: 12px;
+    align-items: center;
+}
+
+.notyf .app-toast .notyf__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 12px;
+}
+
+.notyf .app-toast--success .notyf__icon {
+    background-color: #e7f7ef;
+}
+
+.notyf .app-toast--error .notyf__icon {
+    background-color: #fff0f3;
+}
+
+.notyf .app-toast .notyf__icon--success,
+.notyf .app-toast .notyf__icon--error {
+    background: transparent;
+}
+
+.notyf .app-toast .notyf__message {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    unicode-bidi: plaintext;
+}
+
+.notyf .app-toast .notyf__dismiss {
+    right: auto;
+    left: 0;
+    top: 50%;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    transform: translateY(-50%);
+    animation: none;
+    opacity: 1;
+}
+
+.notyf .app-toast .notyf__dismiss-btn {
+    position: relative;
+    border-radius: 9px;
+    background: #f2f5fa;
+    opacity: 1;
+}
+
+.notyf .app-toast .notyf__dismiss-btn::before,
+.notyf .app-toast .notyf__dismiss-btn::after {
+    background: #68778b;
+}
+
+.notyf .app-toast .notyf__dismiss-btn:hover {
+    background: #e6ebf2;
+}
+
+.notyf .app-toast .notyf__dismiss-btn:focus-visible {
+    outline: 2px solid #3666e8;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .notyf .app-toast {
+        padding: 0 14px;
+        border-radius: 16px;
+    }
+
+    .notyf .app-toast .notyf__message {
+        font-size: 0.875rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notyf .app-toast,
+    .notyf .app-toast .notyf__icon,
+    .notyf .app-toast .notyf__message {
+        animation-duration: 0.01ms;
+        animation-delay: 0ms;
+    }
+}

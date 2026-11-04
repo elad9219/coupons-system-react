@@ -1,4 +1,3 @@
-
 import axios, { AxiosRequestConfig } from "axios";
 import { store } from "../redux/store";
 import {
@@ -12,10 +11,10 @@ import {
 } from "./session";
 
 interface RetryableRequestConfig extends AxiosRequestConfig {
-    _retryCount?: number;
+    _retryDeadline?: number;
 }
 
-const MAX_RETRIES = 10;
+const RETRY_WINDOW_MS = 120000;
 const RETRY_DELAY_MS = 3000;
 
 const jwtAxios = axios.create({
@@ -35,7 +34,38 @@ const isSafeRead = (config: AxiosRequestConfig): boolean => {
 
 const canRetry = (config: RetryableRequestConfig): boolean => {
     return isSafeRead(config) &&
-        (config._retryCount || 0) < MAX_RETRIES;
+        config.signal?.aborted !== true &&
+        typeof config._retryDeadline === "number" &&
+        Date.now() < config._retryDeadline;
+};
+
+const isInvalidCatalogResponse = (
+    config: AxiosRequestConfig,
+    data: unknown
+): boolean => {
+    if (
+        !isSafeRead(config) ||
+        !config.url?.split("?")[0].endsWith("/api/guest/catalog")
+    ) {
+        return false;
+    }
+
+    if (
+        data === null ||
+        typeof data !== "object" ||
+        Array.isArray(data)
+    ) {
+        return true;
+    }
+
+    const catalog = data as Record<string, unknown>;
+
+    return !Array.isArray(catalog.content) ||
+        !Number.isInteger(catalog.page) ||
+        !Number.isInteger(catalog.totalPages) ||
+        !Number.isInteger(catalog.totalElements) ||
+        (catalog.totalPages as number) < 0 ||
+        (catalog.totalElements as number) < 0;
 };
 
 const isLoginRequest = (
@@ -45,19 +75,45 @@ const isLoginRequest = (
 };
 
 const retryRequest = async (
-    config: RetryableRequestConfig
+    config: RetryableRequestConfig,
+    failure: unknown
 ) => {
     window.dispatchEvent(new Event("serverWakingUp"));
 
-    await sleep(RETRY_DELAY_MS);
+    const remaining =
+        (config._retryDeadline || 0) - Date.now();
 
-    return jwtAxios({
-        ...config,
-        _retryCount: (config._retryCount || 0) + 1
-    } as RetryableRequestConfig);
+    await sleep(
+        Math.min(RETRY_DELAY_MS, Math.max(remaining, 0))
+    );
+
+    if (!canRetry(config)) {
+        return Promise.reject(failure);
+    }
+
+    return jwtAxios(config);
 };
 
 jwtAxios.interceptors.request.use(request => {
+    const retryConfig = request as RetryableRequestConfig;
+
+    if (isSafeRead(retryConfig)) {
+        if (retryConfig._retryDeadline === undefined) {
+            retryConfig._retryDeadline =
+                Date.now() + RETRY_WINDOW_MS;
+        }
+
+        const remaining = Math.max(
+            1,
+            retryConfig._retryDeadline - Date.now()
+        );
+
+        retryConfig.timeout = Math.min(
+            retryConfig.timeout || 20000,
+            remaining
+        );
+    }
+
     const previousToken = sessionStorage.getItem("token");
     const token = getValidStoredToken();
 
@@ -85,16 +141,26 @@ jwtAxios.interceptors.response.use(
             typeof response.data === "string" &&
             /^\s*<!doctype html|^\s*<html/i.test(response.data);
 
-        if (isUnexpectedHtml) {
-            const config = response.config as RetryableRequestConfig;
+        const isInvalidCatalog = isInvalidCatalogResponse(
+            response.config,
+            response.data
+        );
+
+        if (isUnexpectedHtml || isInvalidCatalog) {
+            const config =
+                response.config as RetryableRequestConfig;
+
+            const failure = new Error(
+                isUnexpectedHtml
+                    ? "Unexpected HTML response from API"
+                    : "Invalid catalog response"
+            );
 
             if (canRetry(config)) {
-                return retryRequest(config);
+                return retryRequest(config, failure);
             }
 
-            return Promise.reject(
-                new Error("Unexpected HTML response from API")
-            );
+            return Promise.reject(failure);
         }
 
         const refreshedToken =
@@ -146,7 +212,7 @@ jwtAxios.interceptors.response.use(
             canRetry(config) &&
             (isNetworkFailure || isTemporaryServerFailure)
         ) {
-            return retryRequest(config);
+            return retryRequest(config, error);
         }
 
         // An authenticated request was rejected because its token
@@ -168,6 +234,7 @@ jwtAxios.interceptors.response.use(
             ) {
                 clearStoredSession();
                 store.dispatch(userLogout());
+
                 window.dispatchEvent(
                     new Event("sessionExpired")
                 );

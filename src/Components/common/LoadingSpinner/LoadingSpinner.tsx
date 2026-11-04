@@ -1,22 +1,6 @@
 import { CircularProgress, Box, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
 
 function LoadingSpinner(): JSX.Element {
-    const [isWakingUp, setIsWakingUp] = useState(false);
-
-    useEffect(() => {
-        const handleWakeUp = () => setIsWakingUp(true);
-        const handleAwake = () => setIsWakingUp(false);
-
-        window.addEventListener("serverWakingUp", handleWakeUp);
-        window.addEventListener("serverAwake", handleAwake);
-
-        return () => {
-            window.removeEventListener("serverWakingUp", handleWakeUp);
-            window.removeEventListener("serverAwake", handleAwake);
-        };
-    }, []);
-
     return (
         <Box
             dir="rtl"
@@ -53,25 +37,21 @@ function LoadingSpinner(): JSX.Element {
                     color: "text.primary"
                 }}
             >
-                {isWakingUp
-                    ? "שרת ההדגמה מתעורר"
-                    : "טוענים את הנתונים..."}
+                טוענים את הנתונים...
             </Typography>
 
-            {isWakingUp && (
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                        mt: 1,
-                        maxWidth: 380,
-                        lineHeight: 1.8
-                    }}
-                >
-                    הטעינה הראשונה עשויה להימשך מעט יותר.
-                    אנחנו מנסים להתחבר מחדש.
-                </Typography>
-            )}
+            <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                    mt: 1,
+                    maxWidth: 380,
+                    lineHeight: 1.8
+                }}
+            >
+                אם שרת ההדגמה במצב שינה, התעוררותו עשויה להימשך מעט זמן.
+                אנחנו מנסים להתחבר והנתונים יופיעו לאחר טעינה מוצלחת.
+            </Typography>
         </Box>
     );
 }
